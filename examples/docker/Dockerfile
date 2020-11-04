@@ -2,8 +2,7 @@ FROM golang:1.14.4-alpine AS probr-build
 WORKDIR /probr
 COPY . .
 
-FROM node:alpine
-COPY internal/view /probr/internal/view
+RUN apk add --update npm
 
 WORKDIR /probr/internal/view
 RUN npm ci
