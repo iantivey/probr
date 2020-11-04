@@ -9,6 +9,5 @@ WORKDIR /probr/internal/view
 RUN npm ci
 
 WORKDIR /probr
-COPY --from=probr-build /out/probr .
 COPY docker/entrypoint.sh .
 ENTRYPOINT ["./entrypoint.sh"]
