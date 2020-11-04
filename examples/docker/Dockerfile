@@ -1,11 +1,8 @@
 FROM golang:1.14.4-alpine AS probr-build
 WORKDIR /probr
 COPY . .
-RUN go build -o /out/probr cmd/main.go
 
 FROM node:alpine
-COPY integration/clouddriver/kubernetes/assets /probr/integration/clouddriver/kubernetes/assets
-COPY probes probr/probes
 COPY internal/view /probr/internal/view
 
 WORKDIR /probr/internal/view
