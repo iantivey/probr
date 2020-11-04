@@ -1,8 +1,12 @@
-@kubernetes
-@internet_access
-@csp.azure
-@CCO:CHC2-SVD030
-Feature: Egress control of a kubernetes cluster
+@service/kubernetes
+@control/type/network
+@csp/azure
+@csp/aws
+@csp/gcp
+@csp/openshift
+@standard/citihub/CHC2-SVD030
+Feature: Control egress form inside of a Kubernetes cluster
+
   As a Security Auditor
   I want to ensure that containers running inside Kubernetes clusters cannot directly access the Internet
   So that Internet traffic can be inspected and controlled
