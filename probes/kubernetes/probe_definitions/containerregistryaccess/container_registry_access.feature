@@ -11,7 +11,7 @@ Feature: Protect image container registries
   #Rule: CHC2-APPDEV135 - Ensure software release and deployment is managed through a formal, controlled process
 
   @control/type/preventative @standard/cis/6.1.3
-  Scenario Outline: Ensure container image registries are read-only
+  Scenario: Ensure container image registries are read-only
     Given a Kubernetes cluster is deployed
     And I am authorised to pull from a container registry
     When I attempt to push to the container registry using the cluster identity

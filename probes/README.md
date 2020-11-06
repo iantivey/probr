@@ -11,7 +11,7 @@ For more information on how a _feature file_ is written, please review the [Cucu
 ### Feature Scenarios and Steps
 
 Feature behaviour is specified in the form of a set of _scenarios_, each of which are tested by the associated probe.
-A scenario is executed as a sequence of _steps_, each of which is described in the feature file as an english language statement, begining with a reserved word (Given, And, When, Then).
+A scenario is executed as a sequence of _steps_, each of which is described in the feature file as an english language statement, beginning with a reserved word (Given, And, When, Then).
 The status of a scenario execution is managed by a ScenarioState struct, which is defined within the k8s_probes.go file
 
 ## Probe functionality definition
@@ -23,3 +23,21 @@ The mappings from step specification to go function must be registered in the Sc
 For information regarding the godog test handler, refer to the README.MD in the internal/coreengine folder.
 
 Note that some steps may be used across multiple probes within the kubernetes category, and are found in `probes/kubernetes/k8s_probes.go.
+
+## Tagging Strategy
+
+### Root:
+
+| Tag | Purpose | Examples |
+|---|---|---|
+| `@control/` | See `@control`, below | | 
+| `@csp/` | A categorisation for Probes that relate to a specific Cloud Service Provider | `/all`, `/aws`, `/azure`, `/gcp`, `/openshift` |
+| `@service/` | A categorisation for Probes that relate to a cloud agnostic service | `/kubernetes` |
+| `@standard/` | A reference to the source of the requirement for the given Probe, for example a regulation, industry body guidance or other control set. If `none`, the source of the control is unofficial, e.g. generally considered best practice, but not necessarily covered by formal guidance. | `cis/$section`, `citihub/$common_control_id`.|
+
+#### `@control`
+
+| Tag | Purpose | Examples |
+|---|---|
+| `@control/type` | `Detective` describes controls that observe that a change has been made, after the fact. Some detective controls may also remediate an undesirable change. `Preventative` controls aim to stop an undesirable change from being made, examples being Open Policy Agent, Hashicorp Sentinel and Azure Policy | `/detective`, `/preventative` |
+| `@control/family` | Used as a general categorisation for Probes that cover specific, cloud agnostic functional areas | `container_registry_access`, `general`, `iam`, `pod_security_policy`, `network` |

@@ -1,11 +1,11 @@
 @service/kubernetes
-@control/type/network
+@control/family/network
 @csp/azure
 @csp/aws
 @csp/gcp
 @csp/openshift
 @standard/citihub/CHC2-SVD030
-Feature: Control egress form inside of a Kubernetes cluster
+Feature: Control egress from inside of a Kubernetes cluster
 
   As a Security Auditor
   I want to ensure that containers running inside Kubernetes clusters cannot directly access the Internet

@@ -7,7 +7,7 @@ So that my organization can apply security contexts at that level
 
 Rule: ...
 
-@preventitive
+@control/type/preventative
 Scenario Outline: Resources in the kubernetes cluster should not be uploaded into the default namespace
 Given an active Kubernetes cluster exists which we can make changes to 
 And some system exists which can detect if reasources are uploaded into the default namespace

@@ -7,7 +7,7 @@ So that my organization can ensure that my cluster runs smoothly
 
 Rule: ...
 
-@preventative
+@control/type/preventative
 Scenario Outline: Prevent the creation of namespaces without an assigned network policy
 Given an active Kubernetes cluster exists which we can make changes to
 And Some system exists to detect whether created namespaces are given an individual network policy

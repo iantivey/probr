@@ -7,7 +7,7 @@ So that my organization kubernetes cluster has the right operating system on the
 
 Rule: ...
 
-@preventitive
+@control/type/preventative
 Scenario Outline: Prevent pods and containers from running if the security contexts hasn't been configured
 Given an active kubernetes cluster exists which we can make changes to
 And some system exists to detect when a pod attempts to run without configuring security contexts

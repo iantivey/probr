@@ -7,7 +7,7 @@ To limit the scope of malicious activities/ mistakes
 
 Rule: ...
 
-@detective
+@control/type/detective
 Scenario Outline: detect when users attempt to access permissions outside those which they are allowed
 Given an active kubernetes cluster exists which we can make changes to
 And some system exists which can detect when a user attempts to access denied permissions

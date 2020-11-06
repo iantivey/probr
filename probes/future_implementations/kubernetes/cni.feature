@@ -8,7 +8,7 @@ So that my organization can ensure that the CNI is secure
 
 Rule: ...
 
-    @preventative
+    @control/type/preventative
     Scenario Outline: Ensure that the CNI supports Network Policies
         Given a created kubernetes cluster has a working CNI which can be intereacted with
         When a kubernetes cluster is created 

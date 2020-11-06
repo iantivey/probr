@@ -114,7 +114,7 @@ So that a policy of least privilege can be enforced in order to prevent maliciou
 			| Non-Root       | Succeed       |                             |
 			| Not Defined    | Succeed       |                             |
 
-	@control/type/preventitive @standard/cis/5.2.7
+	@control/type/preventative @standard/cis/5.2.7
 	Scenario Outline: Prevent deployments from running with the NET_RAW capability.
 		Given a Kubernetes cluster exists which we can deploy into
 		And some system exists to prevent a Kubernetes deployment from running with NET_RAW capability in an existing Kubernetes cluster
@@ -130,7 +130,7 @@ So that a policy of least privilege can be enforced in order to prevent maliciou
 			| False                       | Succeed       |                                               |
 			| Not Defined                 | Succeed       |                                               |
 
-	@control/type/preventitive @standard/cis/5.2.8
+	@control/type/preventative @standard/cis/5.2.8
 	Scenario Outline: Prevent container running with capabilities beyond the default set.
 		Given a Kubernetes cluster exists which we can deploy into
 		And some system exists to prevent Kubernetes deployments with capabilities beyond the default set from being deployed to an existing kubernetes cluster
@@ -146,7 +146,7 @@ So that a policy of least privilege can be enforced in order to prevent maliciou
 			| ARE NOT       | Succeed       |                                              |
 			| Not Defined   | Succeed       |                                              |
 
-	@control/type/preventitive @standard/cis/5.2.9
+	@control/type/preventative @standard/cis/5.2.9
     Scenario Outline: Prevent deployments from running with assigned capabilities.
         Given a Kubernetes cluster exists which we can deploy into
 		And some system exists to prevent Kubernetes deployments with assigned capabilities from being deployed to an existing Kubernetes cluster
@@ -162,7 +162,7 @@ So that a policy of least privilege can be enforced in order to prevent maliciou
         	| ARE NOT       | Succeed  |                                                         |
 			| Not defined   | Succeed  |                                                         |
 
-	@control/type/preventitive @standard/none/psp-0.1
+	@control/type/preventative @standard/none/psp-0.1
 	Scenario Outline: Prevent deployments from accessing unapproved port range
 		Given a Kubernetes cluster exists which we can deploy into
 		And some system exists to prevent Kubernetes deployments with unapproved port range from being deployed to an existing Kubernetes cluster
@@ -178,7 +178,7 @@ So that a policy of least privilege can be enforced in order to prevent maliciou
 			| approved		| Succeed	|									  	|
 			| not defined	| Succeed	|										|
 
-	@control/type/preventitive @standard/none/psp-0.2
+	@control/type/preventative @standard/none/psp-0.2
 	Scenario Outline: Prevent deployments from accessing unapproved volume types
 		Given a Kubernetes cluster exists which we can deploy into
 		And some system exists to prevent Kubernetes deployments with unapproved volume types from being deployed to an existing Kubernetes cluster
@@ -194,7 +194,7 @@ So that a policy of least privilege can be enforced in order to prevent maliciou
 			| approved		| Succeed	|									  	|
 			| not defined	| Succeed	|										|
 
-	@control/type/preventitive @standard/none/psp-0.3
+	@control/type/preventative @standard/none/psp-0.3
 	Scenario Outline: Prevent deployments from running without approved seccomp profile
 		Given a Kubernetes cluster exists which we can deploy into
 		And some system exists to prevent Kubernetes deployments without approved seccomp profiles from being deployed to an existing Kubernetes cluster

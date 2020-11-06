@@ -7,7 +7,7 @@ So that my organization can ensure that secrets are not easily discovered by rev
 
 Rule: ...
 
-@preventitive
+@control/type/preventative
 Scenario Outline: Prevent secrets from being stored as environmental variables
 Given an active Kubernetes cluster exists
 And Some system exists to detect how and when secrets are being defined
