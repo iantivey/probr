@@ -38,6 +38,6 @@ Note that some steps may be used across multiple probes within the kubernetes ca
 #### `@control`
 
 | Tag | Purpose | Examples |
-|---|---|
+|---|---|---|
 | `@control/type` | `Detective` describes controls that observe that a change has been made, after the fact. Some detective controls may also remediate an undesirable change. `Preventative` controls aim to stop an undesirable change from being made, examples being Open Policy Agent, Hashicorp Sentinel and Azure Policy | `/detective`, `/preventative` |
 | `@control/family` | Used as a general categorisation for Probes that cover specific, cloud agnostic functional areas | `container_registry_access`, `general`, `iam`, `pod_security_policy`, `network` |
