@@ -13,21 +13,23 @@ import (
 // ConfigVars contains all possible config vars
 type ConfigVars struct {
 	// NOTE: Env and Defaults are ONLY available if corresponding logic is added to defaults.go and getters.go
-	ServicePacks              servicePacks   `yaml:"ServicePacks"`
-	CloudProviders            cloudProviders `yaml:"CloudProviders"`
-	OutputType                string         `yaml:"OutputType"`
-	CucumberDir               string         `yaml:"CucumberDir"`
-	AuditDir                  string         `yaml:"AuditDir"`
-	SummaryEnabled            string         `yaml:"SummaryEnabled"`
-	AuditEnabled              string         `yaml:"AuditEnabled"`
-	LogLevel                  string         `yaml:"LogLevel"`
-	OverwriteHistoricalAudits string         `yaml:"OverwriteHistoricalAudits"`
-	ContainerRegistry         string         `yaml:"ContainerRegistry"`
-	ProbeImage                string         `yaml:"ProbeImage"`
-	Probes                    []Probe        `yaml:"Probes"`
-	Tags                      string         `yaml:"Tags"`
-	Silent                    bool           // set by flags only
-	TagExclusions             []string       // set programatically
+	ServicePacks                  servicePacks   `yaml:"ServicePacks"`
+	CloudProviders                cloudProviders `yaml:"CloudProviders"`
+	OutputType                    string         `yaml:"OutputType"`
+	CucumberDir                   string         `yaml:"CucumberDir"`
+	AuditDir                      string         `yaml:"AuditDir"`
+	AuditEnabled                  string         `yaml:"AuditEnabled"`
+	LogLevel                      string         `yaml:"LogLevel"`
+	OverwriteHistoricalAudits     string         `yaml:"OverwriteHistoricalAudits"`
+	AuthorisedContainerRegistry   string         `yaml:"AuthorisedContainerRegistry"`
+	UnauthorisedContainerRegistry string         `yaml:"UnauthorisedContainerRegistry"`
+	ProbeImage                    string         `yaml:"ProbeImage"`
+	Probes                        []Probe        `yaml:"Probes"`
+	Tags                          string         `yaml:"Tags"`
+	VarsFile                      string         // set by flags only
+	NoSummary                     bool           // set by flags only
+	Silent                        bool           // set by flags only
+	TagExclusions                 []string       // set programatically
 }
 
 type servicePacks struct {
@@ -57,9 +59,9 @@ type azure struct {
 }
 
 type Probe struct {
-	Name          string `yaml:"name"`
-	Excluded      bool   `yaml:"excluded"`
-	Justification string `yaml:"justification"`
+	Name          string `yaml:"Name"`
+	Excluded      bool   `yaml:"Excluded"`
+	Justification string `yaml:"Justification"`
 }
 
 // Vars is a singleton instance of ConfigVars
@@ -68,13 +70,16 @@ var Spinner *spinner.Spinner
 
 // GetTags parses Tags with TagExclusions
 func (ctx *ConfigVars) GetTags() string {
-
-	for _, v := range ctx.Probes {
-		if v.Excluded {
-			ctx.HandleExclusion(v.Name, v.Justification)
+	if ctx.Tags == "" {
+		if len(ctx.Probes) > 0 {
+			log.Printf("[WARN] Exclusions are being ignored due to Tags being set.")
+		}
+		for _, v := range ctx.Probes {
+			if v.Excluded {
+				ctx.HandleExclusion(v.Name, v.Justification)
+			}
 		}
 	}
-
 	return ctx.Tags
 }
 
@@ -98,7 +103,7 @@ func Init(configPath string) error {
 	Vars = config
 	setFromEnvOrDefaults(&Vars) // Set any values not retrieved from file
 
-	setLogFilter(Vars.LogLevel, os.Stderr) // Set the minimum log level obtained from Vars
+	SetLogFilter(Vars.LogLevel, os.Stderr) // Set the minimum log level obtained from Vars
 
 	return nil
 }

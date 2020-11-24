@@ -1,12 +1,13 @@
+# Empty and omitted keys will use default values
 AuditEnabled: true
 AuditDir: audit_output
 CucumberDir: cucumber_output
 OverwriteHistoricalAudits: true
-SummaryEnabled: true
-ImagesRepository:
+AuthorisedContainerRegistry: citihubprod.azurecr.io
+UnauthorisedContainerRegistry: docker.io
 ServicePacks:
   Kubernetes:
-    KubeConfig: .kube/config
+    KubeConfig: 
     KubeContext:
 CloudProviders:
   Azure:
@@ -19,10 +20,6 @@ CloudProviders:
       DefaultNamespaceAI:
       DefaultNamespaceAIB:
 Probes: # this entire object can be left out if all tests are to be run
-  - Name: account_manager
-    Excluded: true
-    Justification: "demo"
-
   - Name: container_registry_access
     Excluded: false
     Justification: "demo"
@@ -31,14 +28,14 @@ Probes: # this entire object can be left out if all tests are to be run
     Excluded: false
     Justification: "demo"
 
-  - Name: iam_control
-    Excluded: false
+  - Name: iam
+    Excluded: true
     Justification: "demo"
 
   - Name: internet_access
-    Excluded: false
+    Excluded: true
     Justification: "demo"
 
   - Name: pod_security_policy
-    Excluded: false
+    Excluded: true
     Justification: "demo"
