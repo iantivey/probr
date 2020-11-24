@@ -1,4 +1,3 @@
 #!/bin/sh
-cd /probr
-./probr --outputType=IO --varsFile=./config.yml
-node internal/view/index.js ./cucumber_output
+/probr/probr --outputType=IO --varsFile=/probr/config.yml --outputDir=/probr/cucumber_output
+node /probr/internal/view/index.js /probr/cucumber_output
