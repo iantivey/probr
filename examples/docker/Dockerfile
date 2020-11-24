@@ -4,7 +4,7 @@ COPY . .
 RUN go build -o probr cmd/main.go
 
 FROM node:alpine
-
+COPY internal/view /probr/internal/view
 WORKDIR /probr/internal/view
 RUN npm ci
 
