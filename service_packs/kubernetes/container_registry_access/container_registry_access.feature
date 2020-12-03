@@ -1,6 +1,8 @@
 @service/kubernetes
 @category/container_registry_access
 @standard/cis/benchmark/gke/6.1
+@standard/citihub/CHC2-APPDEV135
+@standard/citihub/CHC2-ITS120
 @csp/all
 Feature: Protect image container registries
   As a Security Auditor
@@ -21,7 +23,7 @@ Feature: Protect image container registries
     Given a Kubernetes cluster is deployed
     When a user attempts to deploy a container from an authorised registry
     Then the deployment attempt is allowed
-    
+
   @control_type/preventative @standard/cis/benchmark/gke/6.1.5
   Scenario: Ensure deployment from an unauthorised container registry is denied
     Given a Kubernetes cluster is deployed

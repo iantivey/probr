@@ -1,5 +1,6 @@
 @service/kubernetes
 @category/internet_access
+@standard/citihub/CHC2-SVD010
 @csp/all
 Feature: Egress control of a kubernetes cluster
   As a Security Auditor

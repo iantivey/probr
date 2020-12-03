@@ -1,6 +1,7 @@
 @service/kubernetes
 @category/pod_security_policy
 @standard/cis/benchmark/gke/5.2
+@standard/citihub/CHC2-IAM105
 @csp/all
 Feature: Maximise security through Pod Security Policies
 

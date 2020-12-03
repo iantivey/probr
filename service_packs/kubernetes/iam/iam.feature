@@ -1,6 +1,7 @@
 @service/kubernetes
 @category/iam
 @standard/cis/benchmark/gke/6.8
+@standard/citihub/CHC2-IAM105
 @standard/none
 Feature: Ensure stringent authentication and authorisation
   As a Security Auditor

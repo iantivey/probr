@@ -7,7 +7,7 @@ Feature: General Cluster Security Configurations
   So that no general cluster vulnerabilities can be exploited
 
   #TODO: should probably move 5.1.3 into the IAM section??
-  @control_type/inspection @standard/cis/benchmark/gke/5.1.3
+  @control_type/inspection @standard/cis/benchmark/gke/5.1.3 @standard/citihub/CHC2-IAM105
   Scenario Outline: Minimise wildcards in Roles and Cluster Roles
     Given a Kubernetes cluster is deployed
     When I inspect the "<rolelevel>" that are configured
@@ -24,7 +24,7 @@ Feature: General Cluster Security Configurations
     When I attempt to create a deployment which does not have a Security Context
     Then the deployment is rejected
 
-  @control_type/inspection @standard/cis/benchmark/gke/6.10.1
+  @control_type/inspection @standard/cis/benchmark/gke/6.10.1 @standard/citihub/CHC2-ITS115
   Scenario: Ensure Kubernetes Web UI is disabled
     Given a Kubernetes cluster is deployed
     And the Kubernetes Web UI is disabled
