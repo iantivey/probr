@@ -16,7 +16,7 @@ So that a policy of least privilege can be enforced in order to prevent maliciou
 #TODO: also ... for 5.2.5, we can test to prevent creation, but what about trying to execute a cmd which reqs root?
 # think we should do that, but is that a separate scenario or blend into this one?  for some this makes sense - mark with @detective?
 
-	@control_type/preventative @standard/cis/benchmark/gke/5.2.1
+	@probe/PSP-1.0 @control_type/preventative @standard/cis/benchmark/gke/5.2.1
 	Scenario Outline: Prevent a deployment from running with privileged access
 		Given a Kubernetes cluster exists which we can deploy into
 		And some system exists to prevent a Kubernetes deployment running with privileged access in an existing Kubernetes cluster
@@ -32,7 +32,7 @@ So that a policy of least privilege can be enforced in order to prevent maliciou
 			| False                       | Succeed       | No error would show                          |
 			| Not Defined                 | Succeed       | No error would show                          |
 
-	@control_type/preventative @standard/cis/benchmark/gke/5.2.2
+	@probe/PSP-1.1 @control_type/preventative @standard/cis/benchmark/gke/5.2.2
 	Scenario Outline: Prevent a deployment from running with the hostPID
 		Given a Kubernetes cluster exists which we can deploy into
 		And some system exists to prevent a Kubernetes deployment from running using the hostPID in an existing Kubernetes cluster
@@ -48,7 +48,7 @@ So that a policy of least privilege can be enforced in order to prevent maliciou
 			| False                       | Succeed       |                                              |
 			| Not Defined                 | Succeed       |                                              |
 
-	@control_type/preventative @standard/cis/benchmark/gke/5.2.3
+	@probe/PSP-1.2 @control_type/preventative @standard/cis/benchmark/gke/5.2.3
 	Scenario Outline: Prevent a deployment from running with the hostIPC flag.
 		Given a Kubernetes cluster exists which we can deploy into
 		And some system exists to prevent a Kubernetes deployment from running using the hostIPC in an existing Kubernetes cluster
@@ -64,7 +64,7 @@ So that a policy of least privilege can be enforced in order to prevent maliciou
 			| False                       | Succeed  | No error would show                      |
 			| Not defined                 | Succeed  | No error would show                      |
 
-	@control_type/preventative @standard/cis/benchmark/gke/5.2.4
+	@probe/PSP-1.3 @control_type/preventative @standard/cis/benchmark/gke/5.2.4
 	Scenario Outline: Prevent a deployment from running with the hostNetwork flag.
 		Given a Kubernetes cluster exists which we can deploy into
 		And some system exists to prevent a Kubernetes deployment from running using the hostNetwork in an existing Kubernetes cluster
@@ -80,7 +80,7 @@ So that a policy of least privilege can be enforced in order to prevent maliciou
 			| False                           | Succeed  | No error would show                      |
 			| Not defined                     | Succeed  | No error would show                      |
 
-	@control_type/preventative @standard/cis/benchmark/gke/5.2.5
+	@probe/PSP-1.4 @control_type/preventative @standard/cis/benchmark/gke/5.2.5
 	Scenario Outline: Prevent a deployment from running with the allowPrivilegeEscalation flag
 		Given a Kubernetes cluster exists which we can deploy into
 		And some system exists to prevent a Kubernetes deployment from running using the allowPrivilegeEscalation in an existing Kubernetes cluster
@@ -96,7 +96,7 @@ So that a policy of least privilege can be enforced in order to prevent maliciou
 			| False                              | Succeed       | No error would show                                         |
 			| Not Defined                        | Succeed       | No error would show                                         |
 
-	@control_type/preventative @standard/cis/benchmark/gke/5.2.6
+	@probe/PSP-1.5 @control_type/preventative @standard/cis/benchmark/gke/5.2.6
 	Scenario Outline: Prevent a deployment from running as the root user
 		Given a Kubernetes cluster exists which we can deploy into
 		And some system exists to prevent a Kubernetes deployment from running as the root user in an existing Kubernetes cluster
@@ -112,7 +112,7 @@ So that a policy of least privilege can be enforced in order to prevent maliciou
 			| Non-Root       | Succeed       |                             |
 			| Not Defined    | Succeed       |                             |
 
-	@control_type/preventative @standard/cis/benchmark/gke/5.2.7
+	@probe/PSP-1.6 @control_type/preventative @standard/cis/benchmark/gke/5.2.7
 	Scenario Outline: Prevent deployments from running with the NET_RAW capability.
 		Given a Kubernetes cluster exists which we can deploy into
 		And some system exists to prevent a Kubernetes deployment from running with NET_RAW capability in an existing Kubernetes cluster
@@ -128,7 +128,7 @@ So that a policy of least privilege can be enforced in order to prevent maliciou
 			| False                       | Succeed       |                                               |
 			| Not Defined                 | Succeed       |                                               |
 
-	@control_type/preventative @standard/cis/benchmark/gke/5.2.8
+	@probe/PSP-1.7 @control_type/preventative @standard/cis/benchmark/gke/5.2.8
 	Scenario Outline: Prevent container running with capabilities beyond the default set.
 		Given a Kubernetes cluster exists which we can deploy into
 		And some system exists to prevent Kubernetes deployments with capabilities beyond the default set from being deployed to an existing kubernetes cluster
@@ -139,28 +139,28 @@ So that a policy of least privilege can be enforced in order to prevent maliciou
 		And I should be able to perform an allowed command
 
 		Examples:
-			| requested 	| RESULT        | ERRORMESSAGE						           |
+			| requested 	  | RESULT        | ERRORMESSAGE						           |
 			| ARE           | Fail          | Containers can't run with added capabilities |
 			| ARE NOT       | Succeed       |                                              |
 			| Not Defined   | Succeed       |                                              |
 
-	@control_type/preventative @standard/cis/benchmark/gke/5.2.9
-    Scenario Outline: Prevent deployments from running with assigned capabilities.
-        Given a Kubernetes cluster exists which we can deploy into
+	@probe/PSP-1.8 @control_type/preventative @standard/cis/benchmark/gke/5.2.9
+  Scenario Outline: Prevent deployments from running with assigned capabilities.
+    Given a Kubernetes cluster exists which we can deploy into
 		And some system exists to prevent Kubernetes deployments with assigned capabilities from being deployed to an existing Kubernetes cluster
-        When a Kubernetes deployment is applied to an existing Kubernetes cluster
+    When a Kubernetes deployment is applied to an existing Kubernetes cluster
 		And assigned capabilities "<requested>" requested for the Kubernetes deployment
-        Then the operation will "<RESULT>" with an error "<ERRORMESSAGE>"
+    Then the operation will "<RESULT>" with an error "<ERRORMESSAGE>"
 		But I should not be able to perform a command that requires any capabilities
 		And I should be able to perform an allowed command
 
-    	Examples:
-        	| requested 	| RESULT   | ERRORMESSAGE                                            |
-        	| ARE           | Fail     | Containers with assigned capabilities can't be deployed |
-        	| ARE NOT       | Succeed  |                                                         |
+    Examples:
+    	| requested 	  | RESULT   | ERRORMESSAGE                                            |
+    	| ARE           | Fail     | Containers with assigned capabilities can't be deployed |
+    	| ARE NOT       | Succeed  |                                                         |
 			| Not defined   | Succeed  |                                                         |
 
-	# @control_type/preventative @standard/none/PSP-0.1
+	# @probe/PSP-1.9 @control_type/preventative @standard/none/PSP-0.1
 	# Scenario Outline: Prevent deployments from accessing unapproved port range
 	# 	Given a Kubernetes cluster exists which we can deploy into
 	# 	And some system exists to prevent Kubernetes deployments with unapproved port range from being deployed to an existing Kubernetes cluster
@@ -176,7 +176,7 @@ So that a policy of least privilege can be enforced in order to prevent maliciou
 	# 		| approved		| Succeed	|									  	|
 	# 		| not defined	| Succeed	|										|
 
-	@control_type/preventative @standard/none/PSP-0.2
+	@probe/PSP-1.10 @control_type/preventative
 	Scenario Outline: Prevent deployments from accessing unapproved volume types
 		Given a Kubernetes cluster exists which we can deploy into
 		And some system exists to prevent Kubernetes deployments with unapproved volume types from being deployed to an existing Kubernetes cluster
@@ -187,12 +187,12 @@ So that a policy of least privilege can be enforced in order to prevent maliciou
 		And I should be able to perform an allowed command
 
 		Examples:
-			| requested 	| RESULT 	| ERRORMESSAGE							|
-			| unapproved  	| Fail  	| Cannot access unapproved volume type	|
-			| approved		| Succeed	|									  	|
-			| not defined	| Succeed	|										|
+			| requested 	| RESULT 	| ERRORMESSAGE							            |
+			| unapproved  | Fail  	| Cannot access unapproved volume type	|
+			| approved		| Succeed	|									  	                  |
+			| not defined	| Succeed	|										                    |
 
-	@control_type/preventative @standard/none/PSP-0.3
+	@probe/PSP-1.11 @control_type/preventative
 	Scenario Outline: Prevent deployments from running without approved seccomp profile
 		Given a Kubernetes cluster exists which we can deploy into
 		And some system exists to prevent Kubernetes deployments without approved seccomp profiles from being deployed to an existing Kubernetes cluster
@@ -203,7 +203,7 @@ So that a policy of least privilege can be enforced in order to prevent maliciou
 		And I should be able to perform an allowed command
 
 		Examples:
-			| requested 	| RESULT 	| ERRORMESSAGE							    |
-			| unapproved  	| Fail  	| Cannot request unapproved seccomp profile	|
-			| approved		| Succeed	| no error							  		|
-			| undefined		| Fail		| Approved seccomp profile required			|
+			| requested 	| RESULT 	| ERRORMESSAGE							                |
+			| unapproved  | Fail  	| Cannot request unapproved seccomp profile	|
+			| approved		| Succeed	| no error							  		              |
+			| undefined		| Fail		| Approved seccomp profile required		    	|

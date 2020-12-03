@@ -8,7 +8,7 @@ Feature: Egress control of a kubernetes cluster
   So that Internet traffic can be inspected and controlled
 
 #  Rule: CHC2-SVD030 - protect cloud service network access by limiting access from the appropriate source network only
-
+  @probe/NET-1.0 @control_type/preventative 
   Scenario Outline: Test outgoing connectivity of a deployed pod
     Given a Kubernetes cluster is deployed
     And a pod is deployed in the cluster
