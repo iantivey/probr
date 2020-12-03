@@ -1,7 +1,6 @@
-@kubernetes
-@internet_access
-@csp.azure
-@CCO:CHC2-SVD030
+@service/kubernetes
+@category/internet_access
+@csp/all
 Feature: Egress control of a kubernetes cluster
   As a Security Auditor
   I want to ensure that containers running inside Kubernetes clusters cannot directly access the Internet

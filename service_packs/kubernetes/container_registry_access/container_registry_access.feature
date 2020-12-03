@@ -1,6 +1,7 @@
-@kubernetes
-@container_registry_access
-@CIS-6.1
+@service/kubernetes
+@category/container_registry_access
+@standard/cis/benchmark/gke/6.1
+@csp/all
 Feature: Protect image container registries
   As a Security Auditor
   I want to ensure that containers image registries are secured in my organisation's Kubernetes clusters
@@ -8,20 +9,20 @@ Feature: Protect image container registries
 
   #Rule: CHC2-APPDEV135 - Ensure software release and deployment is managed through a formal, controlled process
 
-  @preventative @CIS-6.1.3
+  @control_type/preventative @standard/cis/benchmark/gke/6.1.3
   Scenario: Ensure container image registries are read-only
     Given a Kubernetes cluster is deployed
     And I am authorised to pull from a container registry
     When I attempt to push to the container registry using the cluster identity
     Then the push request is rejected due to authorization
 
-  @preventative @CIS-6.1.4
+  @control_type/preventative @standard/cis/benchmark/gke/6.1.4
   Scenario: Ensure deployment from an authorised container registry is allowed
     Given a Kubernetes cluster is deployed
     When a user attempts to deploy a container from an authorised registry
     Then the deployment attempt is allowed
     
-  @preventative @CIS-6.1.5
+  @control_type/preventative @standard/cis/benchmark/gke/6.1.5
   Scenario: Ensure deployment from an unauthorised container registry is denied
     Given a Kubernetes cluster is deployed
     When a user attempts to deploy a container from an unauthorised registry
