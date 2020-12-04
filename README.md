@@ -137,24 +137,27 @@ The available tags are as follows:
 
 These tags describe `service_pack/probe/scenario` in progressive detail.
 
-- kubernetes
-  - container_registry_access
-    - `PROBR_VERSION`.`SCENARIO_ID`
-  - iam
-    - `PROBR_VERSION`.`SCENARIO_ID`
-  - internet_access
-    - `PROBR_VERSION`.`SCENARIO_ID`
-  - general
-    - `PROBR_VERSION`.`SCENARIO_ID`
-  - pod_security_policy
-    - `PROBR_VERSION`.`SCENARIO_ID`
+The first layer of the tag (`@probes`) is only an identifier, and serves no purpose by itself.
+
+- probes
+  - kubernetes
+    - container_registry_access
+      - `PROBR_VERSION`.`SCENARIO_ID`
+    - iam
+      - `PROBR_VERSION`.`SCENARIO_ID`
+    - internet_access
+      - `PROBR_VERSION`.`SCENARIO_ID`
+    - general
+      - `PROBR_VERSION`.`SCENARIO_ID`
+    - pod_security_policy
+      - `PROBR_VERSION`.`SCENARIO_ID`
 
 _Examples:_
 
 ```
-@kubernetes  # all k8s probes and scenarios
-@kubernetes/iam  # scenarios for the k8s/iam prbe
-@kubernetes/pod_security_policy/1.0  # scenario 0 from the v1 Probr release
+@probes/kubernetes  # all k8s probes and scenarios
+@probes/kubernetes/iam  # scenarios for the k8s/iam prbe
+@probes/kubernetes/pod_security_policy/1.0  # scenario 0 from the v1 Probr release
 ```
 
 **Categories**
@@ -169,7 +172,6 @@ These "category" tags may target probes or scenarios with categorical similariti
 _Examples:_
 
 ```
-@category # DOES NOTHING
 @category/internet_access # targets internet access related probes from all service packs
 ```
 
@@ -192,9 +194,9 @@ _Examples:_
 @standard/cis  # targets all CIS-compatible probes and scenarios
 @standard/cis/gke  # as above, but only targets CIS GKE probes and scenarios
 @standard/cis/gke/5  # as above, refined to a specific control
-@standard/cis/gke/5.2  # same as above  
-@standard/cis/gke/5.2.3  # same as above  
-@standard/citihub/CHC2-IAM105  # same as above
+@standard/cis/gke/5.2  # More refined CIS control targeting
+@standard/cis/gke/5.2.3  # More refined CIS control targeting
+@standard/citihub/CHC2-IAM105  # targets probes related to this Citihub control
 ```
 
 **Cloud Service Providers**
