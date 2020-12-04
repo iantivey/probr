@@ -2,7 +2,7 @@
 @category/internet_access
 @standard/citihub/CHC2-SVD010
 @csp/any
-@probr/k8s/net
+@probe/k8s/net
 Feature: Egress control of a kubernetes cluster
   As a Security Auditor
   I want to ensure that containers running inside Kubernetes clusters cannot directly access the Internet
