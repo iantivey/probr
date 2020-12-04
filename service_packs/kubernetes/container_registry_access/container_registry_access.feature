@@ -4,7 +4,7 @@
 @standard/cis/gke/6.1
 @standard/citihub/CHC2-APPDEV135
 @standard/citihub/CHC2-ITS120
-@csp/all
+@csp/any
 Feature: Protect image container registries
     As a Security Auditor
     I want to ensure that containers image registries are secured in my organisation's Kubernetes clusters

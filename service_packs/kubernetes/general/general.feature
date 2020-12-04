@@ -2,7 +2,7 @@
 @kubernetes/general
 @standard/cis
 @standard/cis/gke
-@csp/all
+@csp/any
 Feature: General Cluster Security Configurations
     As a Security Auditor
     I want to ensure that Kubernetes clusters have general security configurations in place

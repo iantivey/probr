@@ -201,14 +201,14 @@ _Examples:_
 Some generalized probes target all providers, but others are only useful for specific providers. The first layer of the tag (`@csp`) is only an identifier, and serves no purpose by itself.
 
 - csp
-  - all
+  - any
   - aws
   - azure
   - gke
   - openshift
 
 ```
-@csp/all  # targets probes and scenarios that are cloud agnostic
+@csp/any  # targets only probes and scenarios that are cloud agnostic
 @csp/gke  # targets only GKE-compatible probes and scanarios
 ```
 

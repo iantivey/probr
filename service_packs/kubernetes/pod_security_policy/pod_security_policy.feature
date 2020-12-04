@@ -7,7 +7,7 @@
 @standard/cis/gke/5.2
 @standard/citihub
 @standard/citihub/CHC2-IAM105
-@csp/all
+@csp/any
 Feature: Maximise security through Pod Security Policies
 
 As a Cloud Security Administrator
