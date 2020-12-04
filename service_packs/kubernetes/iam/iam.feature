@@ -1,6 +1,7 @@
 @service/kubernetes
 @category/iam
 @standard/citihub/CHC2-IAM105
+@probe/k8s/az-ai
 Feature: Ensure stringent authentication and authorisation
   As a Security Auditor
   I want to ensure that stringent authentication and authorisation policies are applied to my organisation's Kubernetes clusters
@@ -8,7 +9,7 @@ Feature: Ensure stringent authentication and authorisation
 
   #There will be CIS control here, for now, straight into Azure AAD Managed Identity ...
 
-  @probe/AZ-AAD-AI-1.0 @control_type/preventative  @csp/azure
+  @probe/k8s/az-ai/1.0 @control_type/preventative  @csp/azure
   Scenario Outline: Prevent cross namespace Azure Identities
     Given a Kubernetes cluster exists which we can deploy into
     When I create a simple pod in "<namespace>" namespace assigned with that AzureIdentityBinding
@@ -20,7 +21,7 @@ Feature: Ensure stringent authentication and authorisation
 			| a non-default | Fail    |
 			| the default   | Succeed |
 
-  @probe/AZ-AAD-AI-1.1 @control_type/preventative  @csp/azure
+  @probe/k8s/az-ai/1.1 @control_type/preventative  @csp/azure
   Scenario: Prevent cross namespace Azure Identity Bindings
     Given a Kubernetes cluster exists which we can deploy into
     And the default namespace has an AzureIdentity
@@ -29,7 +30,7 @@ Feature: Ensure stringent authentication and authorisation
     Then the pod is deployed successfully
     But an attempt to obtain an access token from that pod should fail
 
-  @probe/AZ-AAD-AI-1.2 @control_type/preventative @csp/azure
+  @probe/k8s/az-ai/1.2 @control_type/preventative @csp/azure
   Scenario: Prevent access to AKS credentials via Azure Identity Components
     Given a Kubernetes cluster exists which we can deploy into
     And the cluster has managed identity components deployed
