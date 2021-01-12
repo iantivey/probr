@@ -10,11 +10,15 @@ import (
 
 func iHaveAManifestForDeployingAKS() error {
 	//load all of the test files into memory and check that they contain AKS deployments
-	conftestRunner.PolicyPaths = []string{os.Getenv("CNFT_POLICY_PATH")}
-
 	ctx = context.TODO()
 
 	return nil
+}
+
+func iHaveARegoPolicy() error {
+	conftestRunner.PolicyPaths = []string{os.Getenv("CNFT_POLICY_PATH")}
+
+	return conftestRunner.LoadPolicies(ctx)
 }
 
 func runConfTest() ([]cnftoutput.CheckResult, error) {
@@ -33,15 +37,12 @@ func runConfTest() ([]cnftoutput.CheckResult, error) {
 		return nil, fmt.Errorf("Conftest total result count was nil - nothing evaluated")
 	}
 
-	fmt.Printf("Result Count: %v\n", resultcount)
-
 	return conftestresults, nil
 }
 
 func theCreationOfTheAKSClusterShouldBeAllowed() error {
 
 	successcount := 0
-	fmt.Printf("allows.resultcount: %v ***** \n", len(results))
 	for _, result := range results {
 		if len(result.Failures) > 0 {
 			return fmt.Errorf("Conftest failures detected")
@@ -92,6 +93,7 @@ func theKubernetesWebUIIsUnspecifiedInTheManifest() error {
 
 func FeatureContext(s *godog.Suite) {
 	s.Step(`^I have a manifest for deploying AKS$`, iHaveAManifestForDeployingAKS)
+	s.Step(`^I have a policy that checks for the presence of the AKS dashboard$`, iHaveARegoPolicy)
 	s.Step(`^the creation of the AKS cluster should be allowed$`, theCreationOfTheAKSClusterShouldBeAllowed)
 	s.Step(`^the creation of the AKS cluster should be denied$`, theCreationOfTheAKSClusterShouldBeDenied)
 	s.Step(`^the Kubernetes Web UI is disabled in the manifest$`, theKubernetesWebUIIsDisabledInTheManifest)
