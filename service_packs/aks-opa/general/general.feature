@@ -10,9 +10,10 @@ Feature: General Cluster Security Configurations
 
     @probes/kubernetes/general/1.2 @control_type/inspection @standard/cis/gke/6.10.1 @standard/citihub/CHC2-ITS115
     Scenario: Ensure Kubernetes Web UI is disabled
-        Given I have a manifest for deploying AKS
+        Given I have a manifest for deploying cloud resources
         And I have a policy that checks for the presence of the AKS dashboard
-        When the Kubernetes Web UI is <FLAG> in the manifest
+        When the manifest includes Azure Kubernetes Service resources
+        And the Kubernetes Web UI is <FLAG> in the manifest
         Then the creation of the AKS cluster should be <RESULT>
 
         Examples:

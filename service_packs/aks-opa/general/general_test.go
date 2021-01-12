@@ -8,17 +8,37 @@ import (
 	"os"
 )
 
-func iHaveAManifestForDeployingAKS() error {
-	//load all of the test files into memory and check that they contain AKS deployments
+const (
+	envPolicyPath     = "CNFT_POLICY_PATH"
+	envTfplanDisabled = "CNFT_TFPLAN_DISABLED"
+	envTfplanEnabled  = "CNFT_TFPLAN_ENABLED"
+)
+
+func iHaveAManifest() error {
+	//check that
 	ctx = context.TODO()
+
+	if os.Getenv(envTfplanDisabled) == "" {
+		return fmt.Errorf("Missing environment variable %s", envTfplanDisabled)
+	}
+
+	if os.Getenv(envTfplanEnabled) == "" {
+		return fmt.Errorf("Missing environment variable %s", envTfplanEnabled)
+	}
 
 	return nil
 }
 
 func iHaveARegoPolicy() error {
-	conftestRunner.PolicyPaths = []string{os.Getenv("CNFT_POLICY_PATH")}
+	conftestRunner.PolicyPaths = []string{os.Getenv(envPolicyPath)}
 
 	return conftestRunner.LoadPolicies(ctx)
+}
+
+func manifestIncludesAKS() error {
+	//set up a separate conftestRunner here
+	//we can probably achieve this with namespace
+	return nil
 }
 
 func runConfTest() ([]cnftoutput.CheckResult, error) {
@@ -74,14 +94,14 @@ func theCreationOfTheAKSClusterShouldBeDenied() error {
 }
 
 func theKubernetesWebUIIsDisabledInTheManifest() error {
-	conftestRunner.FileList = []string{os.Getenv("CNFT_TFPLAN_DISABLED")}
+	conftestRunner.FileList = []string{os.Getenv(envTfplanDisabled)}
 	var err error
 	results, err = runConfTest()
 	return err
 }
 
 func theKubernetesWebUIIsEnabledInTheManifest() error {
-	conftestRunner.FileList = []string{os.Getenv("CNFT_TFPLAN_ENABLED")}
+	conftestRunner.FileList = []string{os.Getenv(envTfplanEnabled)}
 	var err error
 	results, err = runConfTest()
 	return err
@@ -92,8 +112,9 @@ func theKubernetesWebUIIsUnspecifiedInTheManifest() error {
 }
 
 func FeatureContext(s *godog.Suite) {
-	s.Step(`^I have a manifest for deploying AKS$`, iHaveAManifestForDeployingAKS)
+	s.Step(`^I have a manifest for deploying cloud resources$`, iHaveAManifest)
 	s.Step(`^I have a policy that checks for the presence of the AKS dashboard$`, iHaveARegoPolicy)
+	s.Step(`^the manifest includes Azure Kubernetes Service resources$`, manifestIncludesAKS)
 	s.Step(`^the creation of the AKS cluster should be allowed$`, theCreationOfTheAKSClusterShouldBeAllowed)
 	s.Step(`^the creation of the AKS cluster should be denied$`, theCreationOfTheAKSClusterShouldBeDenied)
 	s.Step(`^the Kubernetes Web UI is disabled in the manifest$`, theKubernetesWebUIIsDisabledInTheManifest)
