@@ -17,8 +17,9 @@ require (
 	github.com/google/gops v0.3.13 // indirect
 	github.com/gophercloud/gophercloud v0.1.0 // indirect
 	github.com/hashicorp/logutils v1.0.0
+	github.com/open-policy-agent/conftest v0.23.0
 	github.com/stretchr/testify v1.6.1
-	gopkg.in/yaml.v2 v2.2.8
+	gopkg.in/yaml.v2 v2.3.0
 	k8s.io/api v0.19.2
 	k8s.io/apimachinery v0.19.2
 	k8s.io/client-go v0.19.2
