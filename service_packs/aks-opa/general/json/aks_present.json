@@ -1,0 +1,16 @@
+{
+  "resource_changes": [
+    {
+      "type": "azurerm_kubernetes_cluster"
+    },
+    {
+      "type": "azurerm_storage_account"
+    },
+    {
+      "type": "azurerm_kubernetes_cluster"
+    },
+    {
+      "type": "azurerm_kubernetes_cluster"
+    }
+  ]
+}

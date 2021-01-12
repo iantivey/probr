@@ -1,0 +1,7 @@
+{
+  "resource_changes": [
+    {
+      "type": "azurerm_storage_account"
+    }
+  ]
+}
