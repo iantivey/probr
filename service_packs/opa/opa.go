@@ -1,4 +1,4 @@
-package opautil
+package opa
 
 import (
 	"context"
