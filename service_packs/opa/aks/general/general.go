@@ -91,10 +91,6 @@ func (p ProbeStruct) iHaveAManifest() error {
 		return fmt.Errorf("Missing environment variable %s", envTfplanEnabled)
 	}
 
-	if os.Getenv(envTfplanNotPresent) == "" {
-		return fmt.Errorf("Missing environment variable %s", envTfplanNotPresent)
-	}
-
 	return nil
 }
 
@@ -106,15 +102,14 @@ func (p ProbeStruct) iHaveARegoPolicy() error {
 
 func (p ProbeStruct) manifestIncludesAKS() error {
 	/*
-		TODO set up a separate conftestRunner here to check that the example JSON files
-	  contains at least one azurerm_kubernetes_cluster (also might be achievable via
-	  conftest namespaces)
+			TODO set up a separate conftestRunner here to check that the example JSON files
+		  contains at least one azurerm_kubernetes_cluster (also might be achievable via
+		  conftest namespaces)
 	*/
 	return nil
 }
 
 func (p ProbeStruct) theCreationOfTheAKSClusterShouldBeAllowed() error {
-
 	successcount := 0
 	for _, result := range results {
 		if len(result.Failures) > 0 {
@@ -161,8 +156,5 @@ func (p ProbeStruct) theKubernetesWebUIIsEnabledInTheManifest() error {
 }
 
 func (p ProbeStruct) theKubernetesWebUIIsUnspecifiedInTheManifest() error {
-	conftestRunner.FileList = []string{os.Getenv(envTfplanNotPresent)}
-	var err error
-	results, err = runConfTest()
-	return err
+	return godog.ErrPending
 }
