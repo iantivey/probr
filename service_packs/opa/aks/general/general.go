@@ -1,4 +1,4 @@
-package main
+package general
 
 import (
 	"context"
@@ -7,15 +7,24 @@ import (
 
 	"github.com/citihub/probr/internal/coreengine"
 	"github.com/citihub/probr/internal/summary"
+	opautil "github.com/citihub/probr/service_packs/opa"
 	"github.com/cucumber/godog"
 	cnftoutput "github.com/open-policy-agent/conftest/output"
+)
+
+const (
+	envPolicyPath     = "CNFT_POLICY_PATH"
+	envTfplanDisabled = "CNFT_TFPLAN_DISABLED"
+	envTfplanEnabled  = "CNFT_TFPLAN_ENABLED"
 )
 
 var conftestRunner opautil.ConfTestRunner
 var ctx context.Context
 var results []cnftoutput.CheckResult
 
-type ProbeStruct struct{}
+type ProbeStruct struct {
+	state scenarioState
+}
 
 var Probe ProbeStruct
 
@@ -30,7 +39,7 @@ func (p ProbeStruct) Name() string {
 }
 
 func (p ProbeStruct) Path() string {
-	return coreengine.GetFeaturePath("service_packs", "aks-opa", p.Name())
+	return coreengine.GetFeaturePath("service_packs", "opa", "aks", p.Name())
 }
 
 func (p ProbeStruct) ProbeInitialize(ctx *godog.TestSuiteContext) {
@@ -38,9 +47,11 @@ func (p ProbeStruct) ProbeInitialize(ctx *godog.TestSuiteContext) {
 }
 
 func (p ProbeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
-	ps := scenarioState{}
+	p.state = scenarioState{}
 
-	ctx.Step(`^I have a manifest for deploying AKS$`, p.iHaveAManifestForDeployingAKS)
+	ctx.Step(`^I have a manifest for deploying cloud resources$`, p.iHaveAManifest)
+	ctx.Step(`^I have a policy that checks for the presence of the AKS dashboard$`, p.iHaveARegoPolicy)
+	ctx.Step(`^the manifest includes Azure Kubernetes Service resources$`, p.manifestIncludesAKS)
 	ctx.Step(`^the creation of the AKS cluster should be allowed$`, p.theCreationOfTheAKSClusterShouldBeAllowed)
 	ctx.Step(`^the creation of the AKS cluster should be denied$`, p.theCreationOfTheAKSClusterShouldBeDenied)
 	ctx.Step(`^the Kubernetes Web UI is disabled in the manifest$`, p.theKubernetesWebUIIsDisabledInTheManifest)
@@ -64,24 +75,39 @@ func runConfTest() ([]cnftoutput.CheckResult, error) {
 		return nil, fmt.Errorf("Conftest total result count was nil - nothing evaluated")
 	}
 
-	fmt.Printf("Result Count: %v\n", resultcount)
-
 	return conftestresults, nil
 }
 
-func (p ProbeStruct) iHaveAManifestForDeployingAKS() error {
-	//load all of the test files into memory and check that they contain AKS deployments
-	conftestRunner.PolicyPaths = []string{os.Getenv("CNFT_POLICY_PATH")}
-
+func (p ProbeStruct) iHaveAManifest() error {
+	//check that
 	ctx = context.TODO()
 
+	if os.Getenv(envTfplanDisabled) == "" {
+		return fmt.Errorf("Missing environment variable %s", envTfplanDisabled)
+	}
+
+	if os.Getenv(envTfplanEnabled) == "" {
+		return fmt.Errorf("Missing environment variable %s", envTfplanEnabled)
+	}
+
+	return nil
+}
+
+func (p ProbeStruct) iHaveARegoPolicy() error {
+	conftestRunner.PolicyPaths = []string{os.Getenv(envPolicyPath)}
+
+	return conftestRunner.LoadPolicies(ctx)
+}
+
+func (p ProbeStruct) manifestIncludesAKS() error {
+	//set up a separate conftestRunner here
+	//we can probably achieve this with namespace
 	return nil
 }
 
 func (p ProbeStruct) theCreationOfTheAKSClusterShouldBeAllowed() error {
 
 	successcount := 0
-	fmt.Printf("allows.resultcount: %v ***** \n", len(results))
 	for _, result := range results {
 		if len(result.Failures) > 0 {
 			return fmt.Errorf("Conftest failures detected")
@@ -113,14 +139,14 @@ func (p ProbeStruct) theCreationOfTheAKSClusterShouldBeDenied() error {
 }
 
 func (p ProbeStruct) theKubernetesWebUIIsDisabledInTheManifest() error {
-	conftestRunner.FileList = []string{os.Getenv("CNFT_TFPLAN_DISABLED")}
+	conftestRunner.FileList = []string{os.Getenv(envTfplanDisabled)}
 	var err error
 	results, err = runConfTest()
 	return err
 }
 
 func (p ProbeStruct) theKubernetesWebUIIsEnabledInTheManifest() error {
-	conftestRunner.FileList = []string{os.Getenv("CNFT_TFPLAN_ENABLED")}
+	conftestRunner.FileList = []string{os.Getenv(envTfplanEnabled)}
 	var err error
 	results, err = runConfTest()
 	return err
