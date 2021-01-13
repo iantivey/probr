@@ -4,7 +4,7 @@
       "type": "azurerm_kubernetes_cluster",
       "change": {
         "after": {
-          "add_on_profile": [
+          "addon_profile": [
             {
               "aci_connector_linux": [],
               "azure_policy": [
