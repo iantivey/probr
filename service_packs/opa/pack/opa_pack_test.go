@@ -1,4 +1,4 @@
-package storage_pack
+package opa_pack
 
 import (
 	"testing"
