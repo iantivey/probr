@@ -13,9 +13,10 @@ import (
 )
 
 const (
-	envPolicyPath     = "CNFT_POLICY_PATH"
-	envTfplanDisabled = "CNFT_TFPLAN_DISABLED"
-	envTfplanEnabled  = "CNFT_TFPLAN_ENABLED"
+	envPolicyPath       = "CNFT_POLICY_PATH"
+	envTfplanDisabled   = "CNFT_TFPLAN_DISABLED"
+	envTfplanEnabled    = "CNFT_TFPLAN_ENABLED"
+	envTfplanNotPresent = "CNFT_TFPLAN_NOTPRESENT"
 )
 
 var conftestRunner opautil.ConfTestRunner
@@ -90,6 +91,10 @@ func (p ProbeStruct) iHaveAManifest() error {
 		return fmt.Errorf("Missing environment variable %s", envTfplanEnabled)
 	}
 
+	if os.Getenv(envTfplanNotPresent) == "" {
+		return fmt.Errorf("Missing environment variable %s", envTfplanNotPresent)
+	}
+
 	return nil
 }
 
@@ -100,8 +105,11 @@ func (p ProbeStruct) iHaveARegoPolicy() error {
 }
 
 func (p ProbeStruct) manifestIncludesAKS() error {
-	//set up a separate conftestRunner here
-	//we can probably achieve this with namespace
+	/*
+		TODO set up a separate conftestRunner here to check that the example JSON files
+	  contains at least one azurerm_kubernetes_cluster (also might be achievable via
+	  conftest namespaces)
+	*/
 	return nil
 }
 
@@ -153,5 +161,8 @@ func (p ProbeStruct) theKubernetesWebUIIsEnabledInTheManifest() error {
 }
 
 func (p ProbeStruct) theKubernetesWebUIIsUnspecifiedInTheManifest() error {
-	return godog.ErrPending
+	conftestRunner.FileList = []string{os.Getenv(envTfplanNotPresent)}
+	var err error
+	results, err = runConfTest()
+	return err
 }

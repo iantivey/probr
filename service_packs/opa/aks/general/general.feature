@@ -21,3 +21,16 @@ Feature: General Cluster Security Configurations
             | enabled         | denied        |
             | disabled        | allowed       |
             | unspecified     | denied        |
+
+    Scenario: Ensure Active Directory RBAC is enabled
+        Given I have a manifest for deploying cloud resources
+        And I have a policy that checks for that Active Directory RBAC integration is enabled
+        When the manifest includes Azure Kubernetes Service resources
+        And Azure Active Directory RBAC is <FLAG> in the manifest
+        Then the creation of the AKS cluster should be <RESULT>
+
+        Examples:
+          | FLAG            | RESULT        |
+          | enabled         | allowed       |
+          | disabled        | denied        |
+          | unspecified     | denied        |
