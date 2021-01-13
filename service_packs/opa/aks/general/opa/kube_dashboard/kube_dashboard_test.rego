@@ -17,7 +17,7 @@ test_enabled_kube_dashboard {
           "type": "azurerm_kubernetes_cluster",
           "change": {
             "after": {
-              "add_on_profile": [
+              "addon_profile": [
                 {
                   "aci_connector_linux": [],
                   "azure_policy": [
@@ -59,7 +59,7 @@ test_disabled_kube_dashboard {
           "type": "azurerm_kubernetes_cluster",
           "change": {
             "after": {
-              "add_on_profile": [
+              "addon_profile": [
                 {
                   "aci_connector_linux": [],
                   "azure_policy": [
