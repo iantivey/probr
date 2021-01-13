@@ -3,6 +3,7 @@ package service_packs
 import (
 	"github.com/citihub/probr/internal/coreengine"
 	kubernetes_pack "github.com/citihub/probr/service_packs/kubernetes/pack"
+	opa_pack "github.com/citihub/probr/service_packs/opa/pack"
 	storage_pack "github.com/citihub/probr/service_packs/storage/pack"
 )
 
@@ -11,6 +12,7 @@ func packs() (packs map[string][]coreengine.Probe) {
 
 	packs["kubernetes"] = kubernetes_pack.GetProbes()
 	packs["storage"] = storage_pack.GetProbes()
+	packs["opa"] = opa_pack.GetProbes()
 
 	return
 }

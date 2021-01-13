@@ -144,6 +144,11 @@ func (s Storage) IsExcluded() bool {
 }
 
 // Log and return exclusion configuration
+func (o OPA) IsExcluded() bool {
+	return validatePackRequirements("OPA", o)
+}
+
+// Log and return exclusion configuration
 func (p Probe) IsExcluded() bool {
 	if p.Excluded != "" {
 		log.Printf("[NOTICE] Excluding %s probe. Justification: %s", strings.Replace(p.Name, "_", " ", -1), p.Excluded)
@@ -163,21 +168,21 @@ func (s Scenario) IsExcluded() bool {
 
 func validatePackRequirements(name string, object interface{}) bool {
 	// reflect for dynamic type querying
-	storage := reflect.Indirect(reflect.ValueOf(object))
 
-	for i, requirement := range Requirements[name] {
-		if storage.FieldByName(requirement).String() == "" {
-			if Vars.Meta.RunOnly == "" || strings.ToLower(Vars.Meta.RunOnly) == strings.ToLower(name) {
-				// Warn if the pack may have been expected to run
-				log.Printf("[WARN] Ignoring %s service pack due to required var '%s' not being present.", name, Requirements[name][i])
-			}
-			return true
-		}
-	}
 	if Vars.Meta.RunOnly != "" && strings.ToLower(Vars.Meta.RunOnly) != strings.ToLower(name) {
 		// If another pack is specified as RunOnly, this should be excluded
 		log.Printf("[NOTICE] Ignoring %s service pack due to %s being specified by 'probr run <SERVICE-PACK-NAME>'", name, Vars.Meta.RunOnly)
 		return true
+	}
+	pack := reflect.Indirect(reflect.ValueOf(object))
+	for i, requirement := range Requirements[name] {
+		if pack.FieldByName(requirement).String() == "" {
+			if Vars.Meta.RunOnly == "" || strings.ToLower(Vars.Meta.RunOnly) == strings.ToLower(name) {
+				// Warn if the pack may have been expected to run
+				log.Printf("[WARN] Ignoring %s service pack due to required var '%s' not being present.", name, Requirements[name][i])
+				return true
+			}
+		}
 	}
 	log.Printf("[NOTICE] %s service pack included.", name)
 	return false

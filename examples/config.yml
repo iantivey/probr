@@ -24,8 +24,10 @@ ServicePacks:
         Scenarios: # allows this probe's scenarios to be disabled using their probe tag value
           - Name: "1.0"
             Excluded: # "Excluded to demonstrate scenario exclusion option"
-  # Storage:
-      # Provider: # if object OR required vars within it are omitted, pack will not be included
+  Storage:
+    Provider: # if object OR required vars within it are omitted, pack will not be included
+  OPA:
+    Provider:
 CloudProviders:
   Azure:
     TenantID: "8c739bb2-3e1e-494a-9f5a-22e154c876d0"
