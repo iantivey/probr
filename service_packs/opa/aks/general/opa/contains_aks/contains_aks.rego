@@ -1,4 +1,4 @@
-package main
+package probr_aks
 
 azurerm_kubernetes_clusters := [resource |
   resource := input.resource_changes[_]

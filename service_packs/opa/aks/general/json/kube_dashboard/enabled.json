@@ -10,18 +10,5 @@
                 ]
             }
         }
-    },
-    {
-        "type": "azurerm_kubernetes_cluster",
-        "change": {
-            "after": {
-                "addon_profile": [
-                    {
-                        "kube_dashboard": [ {"enabled": false} ]
-                    }
-                ]
-            }
-        }
-    }
-  ]
+    }]
 }
