@@ -1,7 +1,6 @@
-# Probr
+![Probr](/assets/images/probr.png)
 
-## Interactive Application Security Testing (IAST) for infrastructure as code
-
+## Interactive Application Security Testing (IAST) for Cloud Infrastructure as Code
 Probr analyzes the complex behaviours and interactions in your cloud resource code to help engineers, developers and operations teams identify and fix security-related flaws early and often, to assist in building secure platforms and reducing the number of defects discovered later in the development lifecycle.
 
 Probr has been designed to test aspects of security and compliance that are otherwise challenging to assert using static code inspection or configuration inspection alone, providing a deeper level of confidence in the compliance of your cloud solutions.
