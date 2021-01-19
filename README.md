@@ -5,7 +5,7 @@ Probr analyzes the complex behaviours and interactions in your cloud resource co
 
 Probr has been designed to test aspects of security and compliance that are otherwise challenging to assert using static code inspection or configuration inspection alone, providing a deeper level of confidence in the compliance of your cloud solutions.
 
-### Control specifications
+### Control Specifications
 Probr uses structured natural language to describe the behaviours of an adequately controlled set of cloud resources. These form the basis of control requirements without getting into the nitty gritty of how those controls should be implemented.  This leaves engineering teams the freedom to determine the best course of action to implement those behaviours. The implementation may change frequently, given the rapid feature velocity in the cloud and tooling ecosystem, without needing to update Probr. This differentiates Probr from policy-based tools, which are designed to look for specific features of resource implementation, so need to iterate in-line with changes to the underlying implementation approach.
 
 ### How it works
