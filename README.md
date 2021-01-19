@@ -1,4 +1,4 @@
-![Probr](/assets/images/probr.png)
+<img src="assets/images/probr.png" width="200">
 
 ## Interactive Application Security Testing (IAST) for Cloud Infrastructure as Code
 Probr analyzes the complex behaviours and interactions in your cloud resource code to help engineers, developers and operations teams identify and fix security-related flaws early and often, to assist in building secure platforms and reducing the number of defects discovered later in the development lifecycle.
