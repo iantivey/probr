@@ -1,6 +1,6 @@
 <img src="assets/images/probr.png" width="200">
 
-## Interactive Application Security Testing (IAST) for Cloud Infrastructure as Code
+## Interactive Application Security Testing (IAST) for Cloud
 Probr analyzes the complex behaviours and interactions in your cloud resources to enable engineers, developers and operations teams identify and fix security related flaws early and often, to assist in building secure platforms and reducing the number of defects discovered later in the development lifecycle.
 
 Probr has been designed to test aspects of security and compliance that are otherwise challenging to assert using static code inspection or configuration inspection alone, providing a deeper level of confidence in the compliance of your cloud solutions.
@@ -64,7 +64,7 @@ If you would like to handle logic differently per environment, env vars may be u
 
 ### Vars File
 
-An example Vars file is available at [probr/examples/config.yml](./probr/examples/config.yml).
+An example Vars file is available at [./examples/config.yml](./examples/config.yml).
 You may have as many vars files as you wish in your codebase, which will enable you to maintain configurations for multiple environments in a single codebase.
 
 The location of the vars file is passed as a CLI option e.g.
@@ -72,8 +72,6 @@ The location of the vars file is passed as a CLI option e.g.
 ```
 probr --varsFile=./config-dev.yml
 ```
-
-**IMPORTANT:** Try to avoid putting secrets into your config file.  If you do need to have then in the config file, remember not to commit to git and encrypt your config file.
 
 ### Probr Configuration Variables
 
