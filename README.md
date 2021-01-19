@@ -25,7 +25,7 @@ The following elements are required to get started running the Probr Kubernetes 
 
 - **Option 1** - Download the latest Probr package by clicking the corresponding asset on our [release page](https://github.com/citihub/probr/releases).
 - **Option 2** - You may build the edge version of Probr by using `go build -o probr.exe cmd/main.go` from the source code. This may also be necessary if an executable compatible with your system is not available in on the release page.
-- **Option 3** - there is an example Dockerfile in [examples/docker](./examples/docker) which will build a docker image with both probr and [Cucumber HTML Reporter](https://www.npmjs.com/package/cucumber-html-reporter)
+- **Option 3** - There is an example Dockerfile in [examples/docker](./examples/docker) which will build a Docker image with both Probr and [Cucumber HTML Reporter](https://www.npmjs.com/package/cucumber-html-reporter)
 
 *Note: The usage docs refer to the executable as `probr` or `probr.exe` interchangeably. Use the former for unix/linux systems, and the latter package if you are working in Windows.*
 
