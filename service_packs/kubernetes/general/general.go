@@ -11,7 +11,6 @@ import (
 
 	"github.com/cucumber/godog"
 
-	"github.com/citihub/probr/internal/config"
 	"github.com/citihub/probr/internal/coreengine"
 	"github.com/citihub/probr/internal/utils"
 	"github.com/citihub/probr/service_packs/kubernetes"
@@ -57,7 +56,7 @@ func (s *scenarioState) iShouldOnlyFindWildcardsInKnownAndAuthorisedConfiguratio
 	//we strip out system/known entries in the cluster roles & roles call
 	var err error
 	var wildcardCount int
-	//	wildcardCount := len(s.wildcardRoles.([]interface{}))
+
 	switch s.wildcardRoles.(type) {
 	case *[]v1.Role:
 		wildCardRoles := s.wildcardRoles.(*[]rbacv1.Role)
@@ -82,23 +81,6 @@ func (s *scenarioState) iShouldOnlyFindWildcardsInKnownAndAuthorisedConfiguratio
 	return err
 }
 
-//@CIS-5.6.3
-func (s *scenarioState) iAttemptToCreateADeploymentWhichDoesNotHaveASecurityContext() error {
-	cname := "probr-general"
-	podName := kubernetes.GenerateUniquePodName(cname)
-	image := config.Vars.ServicePacks.Kubernetes.AuthorisedContainerRegistry + "/" + config.Vars.ServicePacks.Kubernetes.ProbeImage
-
-	//create pod with nil security context
-	pod, podAudit, err := kubernetes.GetKubeInstance().CreatePod(podName, "probr-general-test-ns", cname, image, true, nil, s.probe)
-
-	err = kubernetes.ProcessPodCreationResult(&s.podState, pod, kubernetes.UndefinedPodCreationErrorReason, err)
-
-	description := "Attempts to create a deployment without a security context. Retains the status of the deployment in scenario state for following steps. Passes if created, or if an expected error is encountered."
-	payload := kubernetes.PodPayload{Pod: pod, PodAudit: podAudit}
-	s.audit.AuditScenarioStep(description, payload, err)
-	return err
-}
-
 func (s *scenarioState) theDeploymentIsRejected() error {
 	//looking for a non-nil creation error
 	var err error
@@ -114,18 +96,6 @@ func (s *scenarioState) theDeploymentIsRejected() error {
 	s.audit.AuditScenarioStep(description, payload, err)
 
 	return err
-}
-
-//@CIS-6.10.1
-// PENDING IMPLEMENTATION
-func (s *scenarioState) iShouldNotBeAbleToAccessTheKubernetesWebUI() error {
-	//TODO: will be difficult to test this.  To access it, a proxy needs to be created:
-	//az aks browse --resource-group rg-probr-all-policies --name ProbrAllPolicies
-	//which will then open a browser at:
-	//http://127.0.0.1:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/#/login
-	//I don't think this is going to be easy to do from here
-	//Is there another test?  Or is it sufficient to verify that no kube-dashboard is running?
-	return nil
 }
 
 func (s *scenarioState) theKubernetesWebUIIsDisabled() error {
@@ -192,11 +162,7 @@ func (p ProbeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I inspect the "([^"]*)" that are configured$`, ps.iInspectTheThatAreConfigured)
 	ctx.Step(`^I should only find wildcards in known and authorised configurations$`, ps.iShouldOnlyFindWildcardsInKnownAndAuthorisedConfigurations)
 
-	//@CIS-5.6.3
-	ctx.Step(`^I attempt to create a deployment which does not have a Security Context$`, ps.iAttemptToCreateADeploymentWhichDoesNotHaveASecurityContext)
-	ctx.Step(`^the deployment is rejected$`, ps.theDeploymentIsRejected)
-
-	ctx.Step(`^I should not be able to access the Kubernetes Web UI$`, ps.iShouldNotBeAbleToAccessTheKubernetesWebUI)
+	//@CIS-6.10.1
 	ctx.Step(`^the Kubernetes Web UI is disabled$`, ps.theKubernetesWebUIIsDisabled)
 
 	ctx.AfterScenario(func(s *godog.Scenario, err error) {
