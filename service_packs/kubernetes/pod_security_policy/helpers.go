@@ -64,6 +64,7 @@ func getSupportedVolumeTypes() []string {
 	return []string{"configmap", "emptydir", "hostpath", "persistentvolumeclaim"}
 }
 
+//TODO: make this runtime configurable
 func getApprovedVolumeTypes() []string {
 	return []string{"configmap", "emptydir", "persistentvolumeclaim"}
 }
