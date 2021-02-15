@@ -94,7 +94,6 @@ func (s *scenarioState) allOperationsWillWithAnError(res, msg string) error {
 
 	for _, ke := range kubeErrors {
 		if ke != nil {
-			fmt.Printf("Error was: %v", ke)
 			err = utils.ReformatError("%v; %v", err, ke)
 		}
 	}
@@ -848,8 +847,6 @@ func (s *scenarioState) volumeTypesAreRequestedForTheKubernetesDeployment(volume
 	} else {
 		volumeTypes = getApprovedVolumeTypes()
 	}
-
-	log.Printf("VolumeTypes: %v", volumeTypes)
 
 	var y []byte
 	var yaml [][]byte

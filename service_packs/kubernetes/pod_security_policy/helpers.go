@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"sync"
 	"time"
 
@@ -64,9 +65,13 @@ func getSupportedVolumeTypes() []string {
 	return []string{"configmap", "emptydir", "hostpath", "persistentvolumeclaim"}
 }
 
-//TODO: make this runtime configurable
 func getApprovedVolumeTypes() []string {
-	return []string{"configmap", "emptydir", "persistentvolumeclaim"}
+	var approvedVolumeTypes []string
+
+	for _, vt := range config.Vars.ServicePacks.Kubernetes.ApprovedVolumeTypes {
+		approvedVolumeTypes = append(approvedVolumeTypes, strings.ToLower(vt))
+	}
+	return approvedVolumeTypes
 }
 
 func (c PSPProbeCommand) String() string {
