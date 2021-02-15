@@ -31,6 +31,7 @@ type scenarioState struct {
 	httpStatusCode int
 	podName        string
 	podState       PodState
+	podStates      []PodState
 	useDefaultNS   bool
 	wildcardRoles  interface{}
 }
