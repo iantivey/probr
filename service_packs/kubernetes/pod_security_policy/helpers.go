@@ -38,6 +38,7 @@ type scenarioState struct {
 	probe     *audit.Probe
 	podState  kubernetes.PodState
 	podStates []kubernetes.PodState
+	info      []interface{} //used to pass arbitrary information between steps
 }
 
 // PSPVerificationProbe encapsulates the command and expected result to be used in a Pod Security Policy probe.
@@ -72,6 +73,61 @@ func getApprovedVolumeTypes() []string {
 		approvedVolumeTypes = append(approvedVolumeTypes, strings.ToLower(vt))
 	}
 	return approvedVolumeTypes
+}
+
+func getAllowedAdditionalCapabilities() []string {
+	return config.Vars.ServicePacks.Kubernetes.ContainerAllowedAddCapabilities
+}
+
+func getDefaultLinuxCapabilities() map[string]string {
+	return map[string]string{
+		"AUDIT_WRITE":      "exit 1",
+		"CHOWN":            "exit 1",
+		"DAC_OVERRIDE":     "exit 1",
+		"FOWNER":           "exit 1",
+		"FSETID":           "exit 1",
+		"KILL":             "exit 1",
+		"MKNOD":            "exit 1",
+		"NET_BIND_SERVICE": "exit 1",
+		"NET_RAW":          "ping www.google.com",
+		"SETFCAP":          "exit 1",
+		"SETGID":           "exit 1",
+		"SETPCAP":          "exit 1",
+		"SETUID":           "exit 1",
+		"SYS_CHROOT":       "exit 1",
+	}
+}
+
+func getLinuxNonDefaultCapabilities() map[string]string {
+	return map[string]string{
+		"AUDIT_CONTROL":      "(exit 1)",
+		"AUDIT_READ":         "return 1",
+		"BLOCK_SUSPEND":      "echo \"exit 1\" > /tmp/exitcode; source /tmp/exitcode",
+		"BPF":                "echo \"return 1\" > /tmp/exitcode; source /tmp/exitcode",
+		"CHECKPOINT_RESTORE": "echo \"exit 1\" > /tmp/exitcode; chmod +x /tmp/exitcode; /tmp/exitcode",
+		"DAC_READ_SEARCH":    "echo \"return 1\" > /tmp/exitcode; chmod +x /tmp/exitcode; /tmp/exitcode",
+		"IPC_LOCK":           "exit 1",
+		"IPC_OWNER":          "exit 1",
+		"LEASE":              "exit 1",
+		"LINUX_IMMUTABLE":    "exit 1",
+		"MAC_ADMIN":          "exit 1",
+		"MAC_OVERRIDE":       "exit 1",
+		"NET_ADMIN":          "ip link add dummy0 type dummy 2",
+		"NET_BROADCAST":      "exit 1",
+		"PERFMON":            "exit 1",
+		"SYS_ADMIN":          "exit 1",
+		"SYS_BOOT":           "exit 1",
+		"SYS_MODULE":         "exit 1",
+		"SYS_NICE":           "exit 1",
+		"SYS_PACCT":          "exit 1",
+		"SYS_PTRACE":         "exit 1",
+		"SYS_RAWIO":          "exit 1",
+		"SYS_RESOURCE":       "exit 1",
+		"SYS_TIME":           "exit 1",
+		"SYS_TTY_CONFIG":     "exit 1",
+		"SYSLOG":             "exit 1",
+		"WAKE_ALARM":         "exit 1",
+	}
 }
 
 func (c PSPProbeCommand) String() string {
@@ -115,6 +171,7 @@ type PodSecurityPolicy interface {
 	CreatePODSettingCapabilities(c *[]string, probe *audit.Probe) (*apiv1.Pod, error)
 	CreatePodFromYaml(y []byte, probe *audit.Probe) (*apiv1.Pod, error)
 	ExecPSPProbeCmd(pName *string, cmd PSPProbeCommand, probe *audit.Probe) (*kubernetes.CmdExecutionResult, error)
+	ExecCmd(pName *string, cmd string, probe *audit.Probe) (*kubernetes.CmdExecutionResult, error)
 	TeardownPodSecurityProbe(p string, e string) error
 	CreateConfigMap() error
 	DeleteConfigMap() error
@@ -566,6 +623,11 @@ func (psp *PSP) CreatePodFromYaml(y []byte, probe *audit.Probe) (*apiv1.Pod, err
 
 // ExecPSPProbeCmd executes the given PSPProbeCommand against the supplied pod name.
 func (psp *PSP) ExecPSPProbeCmd(pName *string, cmd PSPProbeCommand, probe *audit.Probe) (*kubernetes.CmdExecutionResult, error) {
+	return psp.ExecCmd(pName, cmd.String(), probe)
+}
+
+// ExecCmd executes the given cmd against the supplied pod name
+func (psp *PSP) ExecCmd(pName *string, cmd string, probe *audit.Probe) (*kubernetes.CmdExecutionResult, error) {
 	var pn string
 	//if we've not been given a pod name, assume one needs to be created:
 	if pName == nil {
@@ -582,7 +644,7 @@ func (psp *PSP) ExecPSPProbeCmd(pName *string, cmd PSPProbeCommand, probe *audit
 		pn = *pName
 	}
 
-	c := cmd.String()
+	c := cmd
 	res := psp.k.ExecCommand(c, kubernetes.Namespace, &pn)
 
 	log.Printf("[INFO] ExecPSPProbeCmd: %v stdout: %v exit code: %v (error: %v)", cmd, res.Stdout, res.Code, res.Err)
