@@ -32,10 +32,11 @@ const (
 type PSPProbeCommand int
 
 type scenarioState struct {
-	name     string
-	audit    *audit.ScenarioAudit
-	probe    *audit.Probe
-	podState kubernetes.PodState
+	name      string
+	audit     *audit.ScenarioAudit
+	probe     *audit.Probe
+	podState  kubernetes.PodState
+	podStates []kubernetes.PodState
 }
 
 // PSPVerificationProbe encapsulates the command and expected result to be used in a Pod Security Policy probe.
@@ -58,6 +59,14 @@ const (
 	Ls
 	SudoChroot PSPProbeCommand = iota
 )
+
+func getSupportedVolumeTypes() []string {
+	return []string{"configmap", "emptydir", "hostpath", "persistentvolumeclaim"}
+}
+
+func getApprovedVolumeTypes() []string {
+	return []string{"configmap", "emptydir", "persistentvolumeclaim"}
+}
 
 func (c PSPProbeCommand) String() string {
 	return [...]string{"chroot .",
