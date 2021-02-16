@@ -11,6 +11,7 @@ import (
 
 	"github.com/citihub/probr/service_packs/coreengine"
 	"github.com/citihub/probr/service_packs/kubernetes"
+
 	"github.com/citihub/probr/utils"
 )
 
@@ -74,6 +75,34 @@ func (s *scenarioState) theOperationWillWithAnError(res, msg string) error {
 	}()
 
 	err = kubernetes.AssertResult(&s.podState, res, msg)
+	description = fmt.Sprintf("The operation with result %s and message %s", res, msg)
+	payload = struct {
+		PodState kubernetes.PodState
+		PodName  string
+		Expected string
+	}{s.podState, s.podState.PodName, res}
+
+	return err
+}
+
+func (s *scenarioState) allOperationsWillWithAnError(res, msg string) error {
+	// Standard auditing logic to ensures panics are also audited
+	description, payload, err := utils.AuditPlaceholders()
+	defer func() {
+		s.audit.AuditScenarioStep(description, payload, err)
+	}()
+
+	var kubeErrors []error
+	for _, ps := range s.podStates {
+		kubeErrors = append(kubeErrors, kubernetes.AssertResult(&ps, res, msg))
+	}
+
+	for _, ke := range kubeErrors {
+		if ke != nil {
+			err = utils.ReformatError("%v; %v", err, ke)
+		}
+	}
+
 	description = fmt.Sprintf("The operation with result %s and message %s", res, msg)
 	payload = struct {
 		PodState kubernetes.PodState
@@ -446,8 +475,8 @@ func (s *scenarioState) privilegedEscalationIsMarkedForTheKubernetesDeployment(p
 	y, err := utils.ReadStaticFile(kubernetes.AssetsDir, "psp-azp-privileges.yaml")
 	if err == nil {
 		yaml := utils.ReplaceBytesValue(y, "{{ allowPrivilegeEscalation }}", allowPrivilegeEscalation)
-		pd, err := psp.CreatePodFromYaml(yaml, s.probe)
-		err = kubernetes.ProcessPodCreationResult(&s.podState, pd, kubernetes.PSPNoPrivilegeEscalation, err)
+		pd, cErr := psp.CreatePodFromYaml(yaml, s.probe)
+		err = kubernetes.ProcessPodCreationResult(&s.podState, pd, kubernetes.PSPNoPrivilegeEscalation, cErr)
 	}
 	payload = struct {
 		PrivilegedEscalationRequested string
@@ -756,10 +785,8 @@ func (s *scenarioState) anPortRangeIsRequestedForTheKubernetesDeployment(portRan
 	}
 
 	if err == nil {
-		pd, err := psp.CreatePodFromYaml(yaml, s.probe)
-		err = kubernetes.ProcessPodCreationResult(&s.podState, pd, kubernetes.PSPAllowedPortRange, err)
-	} else {
-		return utils.ReformatError("Error reading YAML file. Error was %v", err)
+		pd, cErr := psp.CreatePodFromYaml(y, s.probe)
+		err = kubernetes.ProcessPodCreationResult(&s.podState, pd, kubernetes.PSPAllowedPortRange, cErr)
 	}
 
 	//audit log description defined in case statement above
@@ -789,33 +816,82 @@ func (s *scenarioState) someSystemExistsToPreventKubernetesDeploymentsWithUnappr
 	return err
 }
 
-//AZ Policy - volume type
-func (s *scenarioState) anVolumeTypeIsRequestedForTheKubernetesDeployment(volumeType string) error {
+func (s *scenarioState) iShouldNotBeAbleToPerformACommandThatAccessAnUnapprovedPortRange() error {
 	// Standard auditing logic to ensures panics are also audited
 	description, payload, err := utils.AuditPlaceholders()
 	defer func() {
 		s.audit.AuditScenarioStep(description, payload, err)
 	}()
 
-	var y []byte
-	if volumeType == "unapproved" {
-		y, err = utils.ReadStaticFile(kubernetes.AssetsDir, "psp-azp-volumetypes-unapproved.yaml")
-	} else {
-		y, err = utils.ReadStaticFile(kubernetes.AssetsDir, "psp-azp-volumetypes-approved.yaml")
-	}
+	err = s.runVerificationProbe(VerificationProbe{Cmd: NetCat, ExpectedExitCode: 1})
 
-	if err == nil {
-		pd, err := psp.CreatePodFromYaml(y, s.probe)
-		err = kubernetes.ProcessPodCreationResult(&s.podState, pd, kubernetes.PSPAllowedVolumeTypes, err)
-	}
-
-	description = fmt.Sprintf("a volument type is requested for kubernetes deployment is %s", volumeType)
+	description = "Should not be able to perform a command that access an up approved port range"
 	payload = struct {
 		PodState kubernetes.PodState
 		PodName  string
 	}{s.podState, s.podState.PodName}
 
 	return err
+}
+
+func (s *scenarioState) volumeTypesAreRequestedForTheKubernetesDeployment(volumeType string) error {
+	// Standard auditing logic to ensures panics are also audited
+	description, payload, err := utils.AuditPlaceholders()
+	defer func() {
+		s.audit.AuditScenarioStep(description, payload, err)
+	}()
+
+	var volumeTypes []string
+
+	if volumeType == "unapproved" {
+		//get the list of unapproved volume types by diffing the list of supported and list of approved volumetypes
+		for _, vt := range getSupportedVolumeTypes() {
+			found := false
+			for _, avt := range getApprovedVolumeTypes() {
+				if vt == avt {
+					found = true
+				}
+			}
+
+			if found == false {
+				volumeTypes = append(volumeTypes, vt)
+			}
+		}
+	} else {
+		volumeTypes = getApprovedVolumeTypes()
+	}
+
+	var y []byte
+	var yaml [][]byte
+	for _, vt := range volumeTypes {
+		var localErr error
+		y, localErr = utils.ReadStaticFile(kubernetes.AssetsDir, fmt.Sprintf("volumetypes/psp-azp-volumetypes-%s.yaml", vt))
+		yaml = append(yaml, y)
+		if localErr != nil {
+			err = localErr
+		}
+	}
+
+	if err == nil {
+		for _, podyaml := range yaml {
+			var podState kubernetes.PodState
+			pd, cErr := psp.CreatePodFromYaml(podyaml, s.probe)
+			locErr := kubernetes.ProcessPodCreationResult(&podState, pd, kubernetes.PSPAllowedVolumeTypes, cErr)
+			if locErr != nil {
+				err = locErr
+			}
+			s.podStates = append(s.podStates, podState)
+		}
+	}
+
+	description = fmt.Sprintf("%s volume types are requested for kubernetes deployment", volumeType)
+	payload = struct {
+		PodState kubernetes.PodState
+		PodName  string
+	}{s.podState, s.podState.PodName}
+
+	return err
+
 }
 
 func (s *scenarioState) someSystemExistsToPreventKubernetesDeploymentsWithUnapprovedVolumeTypesFromBeingDeployedToAnExistingKubernetesCluster() error {
@@ -871,8 +947,8 @@ func (s *scenarioState) anSeccompProfileIsRequestedForTheKubernetesDeployment(se
 	if err != nil {
 		log.Print(utils.ReformatError("error reading seccomp provile %v yaml file : %v", seccompProfile, err))
 	}
-	pd, err := psp.CreatePodFromYaml(y, s.probe)
-	err = kubernetes.ProcessPodCreationResult(&s.podState, pd, kubernetes.PSPSeccompProfile, err)
+	pd, cErr := psp.CreatePodFromYaml(y, s.probe)
+	err = kubernetes.ProcessPodCreationResult(&s.podState, pd, kubernetes.PSPSeccompProfile, cErr)
 
 	description = fmt.Sprintf("Sec comp profile requested for kubernetes deployment %s", seccompProfile)
 	payload = struct {
@@ -1008,7 +1084,7 @@ func (p ProbeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 	ctx.Step(`^some system exists to prevent Kubernetes deployments with unapproved port range from being deployed to an existing Kubernetes cluster$`, ps.someSystemExistsToPreventKubernetesDeploymentsWithUnapprovedPortRangeFromBeingDeployedToAnExistingKubernetesCluster)
 
 	//AZPolicy - volume types
-	ctx.Step(`^an "([^"]*)" volume type is requested for the Kubernetes deployment$`, ps.anVolumeTypeIsRequestedForTheKubernetesDeployment)
+	ctx.Step(`^"([^"]*)" volume types are requested for the Kubernetes deployment$`, ps.volumeTypesAreRequestedForTheKubernetesDeployment)
 	ctx.Step(`^I should not be able to perform a command that accesses an unapproved volume type$`, ps.iShouldNotBeAbleToPerformACommandThatAccessesAnUnapprovedVolumeType)
 	ctx.Step(`^some system exists to prevent Kubernetes deployments with unapproved volume types from being deployed to an existing Kubernetes cluster$`, ps.someSystemExistsToPreventKubernetesDeploymentsWithUnapprovedVolumeTypesFromBeingDeployedToAnExistingKubernetesCluster)
 
@@ -1019,13 +1095,19 @@ func (p ProbeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 
 	//general - outcome
 	ctx.Step(`^the operation will "([^"]*)" with an error "([^"]*)"$`, ps.theOperationWillWithAnError)
+	ctx.Step(`^all operations will "([^"]*)" with an error "([^"]*)"$`, ps.allOperationsWillWithAnError)
 	ctx.Step(`^I should be able to perform an allowed command$`, ps.performAllowedCommand)
 
 	ctx.AfterScenario(func(s *godog.Scenario, err error) {
-		psp.TeardownPodSecurityProbe(ps.podState.PodName, p.Name())
+		if len(ps.podStates) == 0 {
+			psp.TeardownPodSecurityProbe(ps.podState.PodName, p.Name())
+		} else {
+			for _, s := range ps.podStates {
+				psp.TeardownPodSecurityProbe(s.PodName, p.Name())
+			}
+		}
 		ps.podState.PodName = ""
 		ps.podState.CreationError = nil
 		coreengine.LogScenarioEnd(s)
 	})
-
 }
