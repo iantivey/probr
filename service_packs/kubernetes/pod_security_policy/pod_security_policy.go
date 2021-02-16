@@ -914,7 +914,7 @@ func (s *scenarioState) anPortRangeIsRequestedForTheKubernetesDeployment(portRan
 	}
 
 	if err == nil {
-		pd, cErr := psp.CreatePodFromYaml(y, s.probe)
+		pd, cErr := psp.CreatePodFromYaml(yaml, s.probe)
 		err = kubernetes.ProcessPodCreationResult(&s.podState, pd, kubernetes.PSPAllowedPortRange, cErr)
 	}
 
