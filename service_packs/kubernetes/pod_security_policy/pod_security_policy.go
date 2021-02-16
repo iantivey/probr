@@ -120,7 +120,23 @@ func (s *scenarioState) performAllowedCommand() error {
 		s.audit.AuditScenarioStep(description, payload, err)
 	}()
 
-	err = s.runVerificationProbe(VerificationProbe{Cmd: Ls, ExpectedExitCode: 0}) //'0' exit code as we expect this to succeed
+	if len(s.podStates) == 0 {
+		err = s.runVerificationProbe(VerificationProbe{Cmd: Ls, ExpectedExitCode: 0}) //'0' exit code as we expect this to succeed
+	} else {
+		var errorMessage string = ""
+		for _, podState := range s.podStates {
+			//fmt.Printf("Run allowed command against %v goes here", podState.PodName)
+			err = s.runVerificationProbeWithCommand(podState, "ls", 0)
+			if err != nil {
+				errorMessage = fmt.Sprintf("%v%v. ", errorMessage, podState.PodName)
+			}
+		}
+		if errorMessage == "" {
+			return nil
+		} else {
+			return fmt.Errorf("[ERROR] Unable to run expected command against pods %s", errorMessage)
+		}
+	}
 
 	description = "Perform Allowed commands"
 	payload = struct {
@@ -151,6 +167,78 @@ func (s *scenarioState) runControlProbe(cf func() (*bool, error), c string) erro
 	}
 
 	return nil
+}
+
+//add expected exit code//
+func (s *scenarioState) runVerificationProbeWithCommand(podState kubernetes.PodState, command string, expectedExitCode int) error {
+	if podState.CreationError == nil {
+		res, err := psp.ExecCmd(&podState.PodName, command, s.probe)
+		//analyse the results
+		if err != nil {
+			//this is an error from trying to execute the command as opposed to
+			//the command itself returning an error
+			err = utils.ReformatError("Likely a misconfiguration error. Error raised trying to execute verification command (%v) - %v", command, err)
+			log.Print(err)
+			return err
+		}
+		if res == nil {
+			err = utils.ReformatError("<nil> result received when trying to execute verification command (%v)", command)
+			log.Print(err)
+			return err
+		}
+		if res.Err != nil && res.Internal {
+			//we have an error which was raised before reaching the cluster (i.e. it's "internal")
+			//this indicates that the command was not successfully executed
+			err = utils.ReformatError("%s: %v - (%v)", utils.CallerName(0), command, res.Err)
+			log.Print(err)
+			return err
+		} // TODO: Potential bug: (res.Err != nil && res.Internal == false) not handled. E.g: Try to execute 'sudo chroot'.
+
+		//log.Printf("Command: %s, Exit Code: %v\n", command, res.Code)
+
+		//we've managed to execution against the cluster.  This may have failed due to pod security, but this
+		//is still a 'successful' execution.  The exit code of the command needs to be verified against expected
+		//check the result against expected:
+		if res.Code == expectedExitCode {
+			//then as expected, test passes
+			return nil
+		}
+		//else it's a fail:
+		return utils.ReformatError("exit code %d from verification command %q did not match expected %v",
+			res.Code, command, expectedExitCode)
+	}
+	return nil
+}
+
+//Tries to run the specified command, which shouldn't be allowed if the capability hasn't been added
+func (s *scenarioState) runCapabilityVerificationProbes() error {
+	var errorMessage string
+
+	for n, podState := range s.podStates {
+
+		var capability string
+		//if we didn't provide any additional info then we assume that there were no additional capabilities as part of this scenario
+		if len(s.info) != 0 {
+			capability = s.info[n].(string)
+		} else {
+			capability = ""
+		}
+
+		for cap, cmd := range getLinuxNonDefaultCapabilities() {
+			if cap != capability {
+				cmdErr := s.runVerificationProbeWithCommand(podState, cmd, 2)
+				if cmdErr != nil {
+					errorMessage = fmt.Sprintf("%s, Error: Command for capability %v was successful. ", errorMessage, cap)
+				}
+			}
+		}
+	}
+
+	if errorMessage == "" {
+		return nil
+	} else {
+		return fmt.Errorf("Error verifying capabilities: %s", errorMessage)
+	}
 }
 
 func (s *scenarioState) runVerificationProbe(c VerificationProbe) error {
@@ -635,24 +723,63 @@ func (s *scenarioState) iShouldNotBeAbleToPerformACommandThatRequiresNETRAWCapab
 }
 
 //CIS-5.2.8
-func (s *scenarioState) additionalCapabilitiesForTheKubernetesDeployment(addCapabilities string) error {
+func (s *scenarioState) additionalCapabilitiesForTheKubernetesDeployment(capabilitiesAllowed string) error {
 	// Standard auditing logic to ensures panics are also audited
 	description, payload, err := utils.AuditPlaceholders()
 	defer func() {
 		s.audit.AuditScenarioStep(description, payload, err)
 	}()
 
-	var c []string
-	if addCapabilities == "ARE" {
-		//TODO: just add net_admin for now - but is this appropriate?
-		c = make([]string, 1)
-		c[0] = "NET_ADMIN"
+	var capabilities []string
+	switch capabilitiesAllowed {
+	case "ARE":
+		//TODO: what if the list is empty?
+		capabilities = getAllowedAdditionalCapabilities()
+		//if you provide an empty array in the Pod specification then the PSP will block it as requesting an additional capability that is not in the allowed list
+		if capabilities[0] == "" {
+			capabilities = make([]string, 0)
+		}
+	case "NOT":
+		// if we haven't been instructed to allow it, then add it to the list
+		for cap := range getLinuxNonDefaultCapabilities() {
+			found := false
+			for _, ac := range getAllowedAdditionalCapabilities() {
+				if cap == ac {
+					found = true
+				}
+			}
+			if found == false {
+				capabilities = append(capabilities, cap)
+			}
+		}
+	case "Not Defined":
+		//do nothing
 	}
 
-	pd, err := psp.CreatePODSettingCapabilities(&c, s.probe)
-	err = kubernetes.ProcessPodCreationResult(&s.podState, pd, kubernetes.PSPAllowedCapabilities, err)
+	if len(capabilities) == 0 {
+		var podState kubernetes.PodState
+		boolVal := false
+		pd, cErr := psp.CreatePODSettingAttributes(nil, nil, &boolVal, s.probe)
+		locErr := kubernetes.ProcessPodCreationResult(&podState, pd, kubernetes.PSPHostNetwork, cErr)
+		if locErr != nil {
+			err = locErr
+		}
+		s.podStates = append(s.podStates, podState)
+	}
 
-	description = fmt.Sprintf("additional Capabilities For The Kubernetes Deployment %s", addCapabilities)
+	for _, capability := range capabilities {
+		var podState kubernetes.PodState
+		c := []string{capability}
+		pd, cErr := psp.CreatePODSettingCapabilities(&c, s.probe)
+		locErr := kubernetes.ProcessPodCreationResult(&podState, pd, kubernetes.PSPAllowedCapabilities, cErr)
+		if locErr != nil {
+			err = locErr
+		}
+		s.podStates = append(s.podStates, podState)
+		s.info = append(s.info, capability)
+	}
+
+	description = fmt.Sprintf("Add Capabilities For The Kubernetes Deployment %s Allowed", capabilitiesAllowed)
 	payload = struct {
 		PodState kubernetes.PodState
 		PodName  string
@@ -686,7 +813,8 @@ func (s *scenarioState) iShouldNotBeAbleToPerformACommandThatRequiresCapabilitie
 		s.audit.AuditScenarioStep(description, payload, err)
 	}()
 
-	err = s.runVerificationProbe(VerificationProbe{Cmd: SpecialCapProbe, ExpectedExitCode: 2})
+	err = s.runCapabilityVerificationProbes()
+	//err = s.runVerificationProbe(VerificationProbe{Cmd: SpecialCapProbe, ExpectedExitCode: 2})
 
 	description = "Should Not Be Able To Perform A Command That Requires Capabilities Outside Of The Default Set"
 	payload = struct {
@@ -723,6 +851,7 @@ func (s *scenarioState) assignedCapabilitiesForTheKubernetesDeployment(assignCap
 	}{s.podState, s.podState.PodName}
 
 	return err
+
 }
 
 func (s *scenarioState) someSystemExistsToPreventKubernetesDeploymentsWithAssignedCapabilitiesFromBeingDeployedToAnExistingKubernetesCluster() error {
@@ -1070,7 +1199,8 @@ func (p ProbeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I should not be able to perform a command that requires NET_RAW capability$`, ps.iShouldNotBeAbleToPerformACommandThatRequiresNETRAWCapability)
 
 	//CIS-5.2.8
-	ctx.Step(`^additional capabilities "([^"]*)" requested for the Kubernetes deployment$`, ps.additionalCapabilitiesForTheKubernetesDeployment)
+	//ctx.Step(`^additional capabilities "([^"]*)" requested for the Kubernetes deployment$`, ps.additionalCapabilitiesForTheKubernetesDeployment)
+	ctx.Step(`^additional capabilities requested for the Kubernetes deployment are "([^"]*)" allowed`, ps.additionalCapabilitiesForTheKubernetesDeployment)
 	ctx.Step(`^some system exists to prevent Kubernetes deployments with capabilities beyond the default set from being deployed to an existing kubernetes cluster$`, ps.someSystemExistsToPreventKubernetesDeploymentsWithCapabilitiesBeyondTheDefaultSetFromBeingDeployedToAnExistingKubernetesCluster)
 	ctx.Step(`^I should not be able to perform a command that requires capabilities outside of the default set$`, ps.iShouldNotBeAbleToPerformACommandThatRequiresCapabilitiesOutsideOfTheDefaultSet)
 

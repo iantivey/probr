@@ -129,26 +129,26 @@ So that a policy of least privilege can be enforced in order to prevent maliciou
         Given a Kubernetes cluster exists which we can deploy into
         And some system exists to prevent Kubernetes deployments with capabilities beyond the default set from being deployed to an existing kubernetes cluster
         When a Kubernetes deployment is applied to an existing Kubernetes cluster
-        And additional capabilities "<requested>" requested for the Kubernetes deployment
-        Then the operation will "<RESULT>" with an error "<ERRORMESSAGE>"
+        And additional capabilities requested for the Kubernetes deployment are "<allowed>" allowed
+        Then all operations will "<RESULT>" with an error "<ERRORMESSAGE>"
         But I should not be able to perform a command that requires capabilities outside of the default set
         And I should be able to perform an allowed command
 
         Examples:
-            | requested   | RESULT  | ERRORMESSAGE                                   |
-            | ARE         | Fail    | Containers can't run with added capabilities |
-            | ARE NOT     | Succeed |                                              |
-            | Not Defined | Succeed |                                              |
+            | allowed     | RESULT  | ERRORMESSAGE                                    |
+            | NOT         | Fail    | Containers can't run with added capabilities    |
+            | ARE         | Succeed |                                                 |
+            | Not Defined | Succeed |                                                 |
 
     @k-psp-009
     Scenario Outline: Prevent deployments from running with assigned capabilities.
         Given a Kubernetes cluster exists which we can deploy into
-            And some system exists to prevent Kubernetes deployments with assigned capabilities from being deployed to an existing Kubernetes cluster
+        And some system exists to prevent Kubernetes deployments with assigned capabilities from being deployed to an existing Kubernetes cluster
         When a Kubernetes deployment is applied to an existing Kubernetes cluster
-            And assigned capabilities "<requested>" requested for the Kubernetes deployment
+        And assigned capabilities "<requested>" requested for the Kubernetes deployment
         Then the operation will "<RESULT>" with an error "<ERRORMESSAGE>"
-            But I should not be able to perform a command that requires any capabilities
-            And I should be able to perform an allowed command
+        But I should not be able to perform a command that requires any capabilities
+        And I should be able to perform an allowed command
 
         Examples:
             | requested   | RESULT  | ERRORMESSAGE                                            |

@@ -172,7 +172,7 @@ func GetContainerDropCapabilitiesFromConfig() []apiv1.Capability {
 	var apiDropCapabilities []apiv1.Capability
 
 	// Adding all values from config
-	dropCapabilitiesFromConfig := config.Vars.ServicePacks.Kubernetes.ContainerDropCapabilities
+	dropCapabilitiesFromConfig := config.Vars.ServicePacks.Kubernetes.ContainerRequiredDropCapabilities
 	for _, dropCap := range dropCapabilitiesFromConfig {
 		if dropCap != "" {
 			apiDropCapabilities = append(apiDropCapabilities, apiv1.Capability(dropCap))

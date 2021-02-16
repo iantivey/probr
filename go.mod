@@ -21,3 +21,8 @@ require (
 	k8s.io/apimachinery v0.19.2
 	k8s.io/client-go v0.19.2
 )
+
+replace (
+	github.com/citihub/probr/service_packs/kubernetes => "./service_packs/kubernetes"
+	github.com/citihub/probr/service_packs/kubernetes/pod_security_policy => "./service_packs/kubernetes/pod_security_policy"
+)

@@ -29,16 +29,17 @@ type ServicePacks struct {
 }
 
 type Kubernetes struct {
-	exclusionLogged               bool
-	Probes                        []Probe  `yaml:"Probes"`
-	KubeConfigPath                string   `yaml:"KubeConfig"`
-	KubeContext                   string   `yaml:"KubeContext"`
-	SystemClusterRoles            []string `yaml:"SystemClusterRoles"`
-	AuthorisedContainerRegistry   string   `yaml:"AuthorisedContainerRegistry"`
-	UnauthorisedContainerRegistry string   `yaml:"UnauthorisedContainerRegistry"`
-	ProbeImage                    string   `yaml:"ProbeImage"`
-	ContainerDropCapabilities     []string `yaml:"ContainerDropCapabilities"`
-	ApprovedVolumeTypes           []string `yaml:"ApprovedVolumeTypes"`
+	exclusionLogged                   bool
+	Probes                            []Probe  `yaml:"Probes"`
+	KubeConfigPath                    string   `yaml:"KubeConfig"`
+	KubeContext                       string   `yaml:"KubeContext"`
+	SystemClusterRoles                []string `yaml:"SystemClusterRoles"`
+	AuthorisedContainerRegistry       string   `yaml:"AuthorisedContainerRegistry"`
+	UnauthorisedContainerRegistry     string   `yaml:"UnauthorisedContainerRegistry"`
+	ProbeImage                        string   `yaml:"ProbeImage"`
+	ContainerRequiredDropCapabilities []string `yaml:"ContainerRequiredDropCapabilities"`
+	ContainerAllowedAddCapabilities   []string `yaml:"ContainerAllowedAddCapabilities"`
+	ApprovedVolumeTypes               []string `yaml:"ApprovedVolumeTypes"`
 }
 
 type Storage struct {
