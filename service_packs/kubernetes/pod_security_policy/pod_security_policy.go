@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/cucumber/godog"
@@ -13,11 +12,6 @@ import (
 	"github.com/citihub/probr/service_packs/kubernetes"
 
 	"github.com/citihub/probr/utils"
-)
-
-const (
-	unapprovedPort = 8080
-	//TODO: make this configurable at runtime
 )
 
 type ProbeStruct struct{}
@@ -903,9 +897,10 @@ func (s *scenarioState) anPortRangeIsRequestedForTheKubernetesDeployment(portRan
 
 	switch portRange {
 	case "unapproved":
+		unapprovedHostPort := kubernetes.GetUnapprovedHostPortFromConfig()
 		y, err = utils.ReadStaticFile(kubernetes.AssetsDir, "psp-azp-hostport-unapproved.yaml")
-		yaml = utils.ReplaceBytesValue(y, "{{ unapproved-port }}", strconv.Itoa(unapprovedPort))
-		description = fmt.Sprintf("%s port range is requested for kubernetes deployment. Port was %v.", portRange, unapprovedPort)
+		yaml = utils.ReplaceBytesValue(y, "{{ unapproved-port }}", unapprovedHostPort)
+		description = fmt.Sprintf("%s port range is requested for kubernetes deployment. Port was %v.", portRange, unapprovedHostPort)
 	case "not defined":
 		yaml, err = utils.ReadStaticFile(kubernetes.AssetsDir, "psp-azp-hostport-notdefined.yaml")
 		description = fmt.Sprintf("%s port range is requested for kubernetes deployment.", portRange)
@@ -1229,11 +1224,13 @@ func (p ProbeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I should be able to perform an allowed command$`, ps.performAllowedCommand)
 
 	ctx.AfterScenario(func(s *godog.Scenario, err error) {
-		if len(ps.podStates) == 0 {
-			psp.TeardownPodSecurityProbe(ps.podState.PodName, p.Name())
-		} else {
-			for _, s := range ps.podStates {
-				psp.TeardownPodSecurityProbe(s.PodName, p.Name())
+		if kubernetes.GetKeepPodsFromConfig() == false {
+			if len(ps.podStates) == 0 {
+				psp.TeardownPodSecurityProbe(ps.podState.PodName, p.Name())
+			} else {
+				for _, s := range ps.podStates {
+					psp.TeardownPodSecurityProbe(s.PodName, p.Name())
+				}
 			}
 		}
 		ps.podState.PodName = ""

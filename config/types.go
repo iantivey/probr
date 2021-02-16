@@ -30,6 +30,7 @@ type ServicePacks struct {
 
 type Kubernetes struct {
 	exclusionLogged                   bool
+	KeepPods                          string   `yaml:"KeepPods"`
 	Probes                            []Probe  `yaml:"Probes"`
 	KubeConfigPath                    string   `yaml:"KubeConfig"`
 	KubeContext                       string   `yaml:"KubeContext"`
@@ -40,6 +41,7 @@ type Kubernetes struct {
 	ContainerRequiredDropCapabilities []string `yaml:"ContainerRequiredDropCapabilities"`
 	ContainerAllowedAddCapabilities   []string `yaml:"ContainerAllowedAddCapabilities"`
 	ApprovedVolumeTypes               []string `yaml:"ApprovedVolumeTypes"`
+	UnapprovedHostPort                string   `yaml:"UnapprovedHostPort"`
 }
 
 type Storage struct {
