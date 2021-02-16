@@ -189,7 +189,8 @@ func (s *scenarioState) runVerificationProbeWithCommand(podState kubernetes.PodS
 			return err
 		} // TODO: Potential bug: (res.Err != nil && res.Internal == false) not handled. E.g: Try to execute 'sudo chroot'.
 
-		log.Printf("Command: %s, Exit Code: %v\n", command, res.Code)
+		//log.Printf("Command: %s, Exit Code: %v\n", command, res.Code)
+
 		//we've managed to execution against the cluster.  This may have failed due to pod security, but this
 		//is still a 'successful' execution.  The exit code of the command needs to be verified against expected
 		//check the result against expected:
@@ -220,7 +221,7 @@ func (s *scenarioState) runCapabilityVerificationProbes() error {
 
 		for cap, cmd := range getLinuxNonDefaultCapabilities() {
 			if cap != capability {
-				cmdErr := s.runVerificationProbeWithCommand(podState, cmd, 1)
+				cmdErr := s.runVerificationProbeWithCommand(podState, cmd, 2)
 				if cmdErr != nil {
 					errorMessage = fmt.Sprintf("%s, Error: Command for capability %v was successful. ", errorMessage, cap)
 				}
@@ -762,7 +763,6 @@ func (s *scenarioState) additionalCapabilitiesForTheKubernetesDeployment(capabil
 	}
 
 	for _, capability := range capabilities {
-		fmt.Printf("Requesting Capability: %s\n", capability)
 		var podState kubernetes.PodState
 		c := []string{capability}
 		pd, cErr := psp.CreatePODSettingCapabilities(&c, s.probe)

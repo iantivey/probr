@@ -428,6 +428,7 @@ func (k *Kube) ExecCommand(cmd string, ns string, pn *string) (s *CmdExecutionRe
 		Stderr: &stderr,
 		Tty:    false,
 	})
+	//TODO: I think this is returning a false result - need to look at the stderr
 	if err != nil {
 		if ce, ok := err.(executil.CodeExitError); ok {
 			//the command has been executed on the container, but the underlying command raised an error
