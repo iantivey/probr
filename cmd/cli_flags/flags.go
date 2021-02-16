@@ -102,7 +102,7 @@ func resultsformatHandler(v interface{}) {
 		options := []string{"cucumber", "events", "junit", "pretty", "progress"}
 		_, found := utils.FindString(options, *v.(*string))
 		if !found {
-			log.Fatalf("[ERROR] Unknown loglevel specified: '%s'. Must be one of %v", *v.(*string), options)
+			log.Fatalf("[ERROR] Unknown resultsformat specified: '%s'. Must be one of %v", *v.(*string), options)
 		} else {
 			config.Vars.ResultsFormat = *v.(*string)
 			config.SetLogFilter(config.Vars.ResultsFormat, os.Stderr)
