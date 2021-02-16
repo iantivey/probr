@@ -3,20 +3,15 @@ package pod_security_policy
 import (
 	"fmt"
 	"log"
-	"path/filepath"
-	"strconv"
 	"strings"
+
+	"path/filepath"
 
 	"github.com/cucumber/godog"
 
 	"github.com/citihub/probr/service_packs/coreengine"
 	"github.com/citihub/probr/service_packs/kubernetes"
 	"github.com/citihub/probr/utils"
-)
-
-const (
-	unapprovedPort = 8080
-	//TODO: make this configurable at runtime
 )
 
 type ProbeStruct struct{}
@@ -741,28 +736,18 @@ func (s *scenarioState) anPortRangeIsRequestedForTheKubernetesDeployment(portRan
 	}()
 
 	var y []byte
-	var yaml []byte
-
-	switch portRange {
-	case "unapproved":
+	if portRange == "unapproved" {
 		y, err = utils.ReadStaticFile(kubernetes.AssetsDir, "psp-azp-hostport-unapproved.yaml")
-		yaml = utils.ReplaceBytesValue(y, "{{ unapproved-port }}", strconv.Itoa(unapprovedPort))
-		description = fmt.Sprintf("%s port range is requested for kubernetes deployment. Port was %v.", portRange, unapprovedPort)
-	case "not defined":
-		yaml, err = utils.ReadStaticFile(kubernetes.AssetsDir, "psp-azp-hostport-notdefined.yaml")
-		description = fmt.Sprintf("%s port range is requested for kubernetes deployment.", portRange)
-	default:
-		err = fmt.Errorf("Unrecognised port range option")
+	} else {
+		y, err = utils.ReadStaticFile(kubernetes.AssetsDir, "psp-azp-hostport-approved.yaml")
 	}
 
 	if err == nil {
-		pd, err := psp.CreatePodFromYaml(yaml, s.probe)
+		pd, err := psp.CreatePodFromYaml(y, s.probe)
 		err = kubernetes.ProcessPodCreationResult(&s.podState, pd, kubernetes.PSPAllowedPortRange, err)
-	} else {
-		return utils.ReformatError("Error reading YAML file. Error was %v", err)
 	}
 
-	//audit log description defined in case statement above
+	description = fmt.Sprintf("Port range is requested for kubernetes deployment %s", portRange)
 	payload = struct {
 		PodState kubernetes.PodState
 		PodName  string
@@ -781,6 +766,24 @@ func (s *scenarioState) someSystemExistsToPreventKubernetesDeploymentsWithUnappr
 	err = s.runControlProbe(psp.HostPortsAreRestricted, "HostPortsAreRestricted")
 
 	description = "some System Exists To Prevent Kubernetes Deployments With Unapproved Port Range From Being Deployed To An Existing Kubernetes Cluster"
+	payload = struct {
+		PodState kubernetes.PodState
+		PodName  string
+	}{s.podState, s.podState.PodName}
+
+	return err
+}
+
+func (s *scenarioState) iShouldNotBeAbleToPerformACommandThatAccessAnUnapprovedPortRange() error {
+	// Standard auditing logic to ensures panics are also audited
+	description, payload, err := utils.AuditPlaceholders()
+	defer func() {
+		s.audit.AuditScenarioStep(description, payload, err)
+	}()
+
+	err = s.runVerificationProbe(VerificationProbe{Cmd: NetCat, ExpectedExitCode: 1})
+
+	description = "Should not be able to perform a command that access an up approved port range"
 	payload = struct {
 		PodState kubernetes.PodState
 		PodName  string
@@ -1004,7 +1007,8 @@ func (p ProbeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I should not be able to perform a command that requires any capabilities$`, ps.iShouldNotBeAbleToPerformACommandThatRequiresAnyCapabilities)
 
 	//AZPolicy - port range
-	ctx.Step(`^an "([^"]*)" hostPort is requested for the Kubernetes deployment$`, ps.anPortRangeIsRequestedForTheKubernetesDeployment)
+	ctx.Step(`^an "([^"]*)" port range is requested for the Kubernetes deployment$`, ps.anPortRangeIsRequestedForTheKubernetesDeployment)
+	ctx.Step(`^I should not be able to perform a command that access an unapproved port range$`, ps.iShouldNotBeAbleToPerformACommandThatAccessAnUnapprovedPortRange)
 	ctx.Step(`^some system exists to prevent Kubernetes deployments with unapproved port range from being deployed to an existing Kubernetes cluster$`, ps.someSystemExistsToPreventKubernetesDeploymentsWithUnapprovedPortRangeFromBeingDeployedToAnExistingKubernetesCluster)
 
 	//AZPolicy - volume types
