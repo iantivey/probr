@@ -17,6 +17,7 @@ func setFromEnvOrDefaults(e *ConfigVars) {
 	e.set(&e.LogLevel, "PROBR_LOG_LEVEL", "ERROR")
 	e.set(&e.OverwriteHistoricalAudits, "OVERWRITE_AUDITS", "true")
 
+	e.set(&e.ServicePacks.Kubernetes.KeepPods, "PROBR_KEEP_PODS", "false")
 	e.set(&e.ServicePacks.Kubernetes.KubeConfigPath, "KUBE_CONFIG", getDefaultKubeConfigPath())
 	e.set(&e.ServicePacks.Kubernetes.KubeContext, "KUBE_CONTEXT", "")
 	e.set(&e.ServicePacks.Kubernetes.SystemClusterRoles, "", []string{"system:", "aks", "cluster-admin", "policy-agent"})
@@ -24,6 +25,7 @@ func setFromEnvOrDefaults(e *ConfigVars) {
 	e.set(&e.ServicePacks.Kubernetes.UnauthorisedContainerRegistry, "PROBR_UNAUTHORISED_REGISTRY", "")
 	e.set(&e.ServicePacks.Kubernetes.ProbeImage, "PROBR_PROBE_IMAGE", "citihub/probr-probe")
 	e.set(&e.ServicePacks.Kubernetes.ContainerDropCapabilities, "PROBR_CONTAINER_DROP_CAPABILITIES", []string{"NET_RAW"})
+	e.set(&e.ServicePacks.Kubernetes.UnapprovedHostPort, "PROBR_UNAPPROVED_HOSTPORT", "22")
 
 	e.set(&e.CloudProviders.Azure.TenantID, "AZURE_TENANT_ID", "")
 	e.set(&e.CloudProviders.Azure.SubscriptionID, "AZURE_SUBSCRIPTION_ID", "")

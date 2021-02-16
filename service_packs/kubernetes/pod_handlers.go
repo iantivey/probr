@@ -181,3 +181,7 @@ func GetContainerDropCapabilitiesFromConfig() []apiv1.Capability {
 
 	return apiDropCapabilities
 }
+
+func GetUnapprovedHostPortFromConfig() string {
+	return config.Vars.ServicePacks.Kubernetes.UnapprovedHostPort
+}
