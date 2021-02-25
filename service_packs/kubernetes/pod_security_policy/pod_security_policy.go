@@ -81,30 +81,48 @@ func (s *scenarioState) theOperationWillWithAnError(result, message string) erro
 	return err
 }
 
+func checkDeploymentStates(podStates *[]kubernetes.PodState, result, message string) ([]string, error) {
+	var kubeErrors []error
+	var errorMessages []string
+	var err error
+	for _, ps := range *podStates {
+		kubeErrors = append(kubeErrors, kubernetes.AssertResult(&ps, result, message))
+	}
+
+	for _, ke := range kubeErrors {
+		if ke != nil {
+			errorMessages = append(errorMessages, ke.Error())
+		}
+	}
+
+	if len(errorMessages) > 0 {
+		err = fmt.Errorf("Result of some Pod deployments not as expected - see audit log for detail")
+	}
+	return errorMessages, err
+}
+
 func (s *scenarioState) allOperationsWillWithAnError(result, message string) error {
+	fmt.Printf("entering all ops with an error")
 	// Standard auditing logic to ensures panics are also audited
 	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
 		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
-	var kubeErrors []error
-	for _, ps := range s.podStates {
-		kubeErrors = append(kubeErrors, kubernetes.AssertResult(&ps, result, message))
-	}
-
-	for _, ke := range kubeErrors {
-		if ke != nil {
-			err = utils.ReformatError("%v; %v", err, ke)
-		}
-	}
-
 	stepTrace.WriteString("Validate that the scenario state was updated in the previous step with a list of pods with a particular result and message; ")
+	fmt.Printf("check deployment states")
+
+	//TODO: replace this with function call
+	errorMessages, err := checkDeploymentStates(&s.podStates, result, message)
+
 	payload = struct {
 		ExpectedResult  string
 		ExpectedMessage string
+		Errors          []string
 		PodState        []kubernetes.PodState
-	}{result, message, s.podStates}
+	}{result, message, errorMessages, s.podStates}
+
+	fmt.Printf("error is %v", err)
 
 	return err
 }
@@ -1157,6 +1175,109 @@ func (p probeStruct) ProbeInitialize(ctx *godog.TestSuiteContext) {
 	})
 }
 
+func (s *scenarioState) listOfAdditionalCapabilitiesHasBeenProvided() error {
+	// Standard auditing logic to ensures panics are also audited
+	stepTrace, payload, err := utils.AuditPlaceholders()
+	defer func() {
+		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
+	}()
+
+	stepTrace.WriteString(fmt.Sprintf(
+		"List of allowed additional capabilities to be tested: %v", getAllowedAdditionalCapabilities()))
+
+	return nil
+}
+
+func (s *scenarioState) deployPodsWithAdditionalCapabilities(capabilities []string) ([]kubernetes.PodState, error) {
+	var podStates []kubernetes.PodState
+
+	if capabilities[0] == "" {
+		capabilities = make([]string, 0)
+	}
+
+	if len(capabilities) == 0 {
+		var podState kubernetes.PodState
+		boolVal := false
+		pd, cErr := psp.CreatePODSettingAttributes(nil, nil, &boolVal, s.probe)
+		if err := kubernetes.ProcessPodCreationResult(&podState, pd, kubernetes.PSPAllowedCapabilities, cErr); err != nil {
+			return podStates, err
+		}
+	}
+
+	for _, capability := range capabilities {
+
+		var podState kubernetes.PodState
+		c := []string{capability}
+		pd, cErr := psp.CreatePODSettingCapabilities(&c, s.probe)
+
+		if err := kubernetes.ProcessPodCreationResult(&podState, pd, kubernetes.PSPAllowedCapabilities, cErr); err != nil {
+			return podStates, err
+		}
+		podStates = append(podStates, podState)
+
+	}
+	return podStates, nil
+}
+
+func (s *scenarioState) checkPodsCanBeDeployedWithAllowedCapabilities() error {
+	// Standard auditing logic to ensures panics are also audited
+	stepTrace, payload, err := utils.AuditPlaceholders()
+	defer func() {
+		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
+	}()
+
+	stepTrace.WriteString("Creating list of allowed additional capabilities from config vars; ")
+
+	capabilities := getAllowedAdditionalCapabilities()
+	//if you provide an empty array in the Pod specification then the PSP will block it as requesting an additional capability that is not in the allowed list
+
+	podStates, err := s.deployPodsWithAdditionalCapabilities(capabilities)
+
+	errorMessages, err := checkDeploymentStates(&podStates, "allowed", "")
+
+	payload = struct {
+		Capabilities  []string
+		ErrorMessages []string
+	}{capabilities, errorMessages}
+
+	return err
+}
+
+func (s *scenarioState) storeStateForPodsWithDisallowedCapabilities() error {
+	// Standard auditing logic to ensures panics are also audited
+	stepTrace, payload, err := utils.AuditPlaceholders()
+	defer func() {
+		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
+	}()
+
+	var capabilities []string
+
+	stepTrace.WriteString("Creating list of disallowed capabilities from linux non-default capability list; ")
+	// if we haven't been instructed to allow it, then add it to the list of capabilities we want to try deploying
+	for cap := range getLinuxNonDefaultCapabilities() {
+		for _, ac := range getAllowedAdditionalCapabilities() {
+			if cap == ac {
+			} else {
+				capabilities = append(capabilities, cap)
+			}
+		}
+	}
+
+	s.podStates, err = s.deployPodsWithAdditionalCapabilities(capabilities)
+
+	payload = struct {
+		PodState     kubernetes.PodState
+		Capabilities []string
+	}{s.podState, capabilities}
+
+	return err
+
+}
+
+func (s *scenarioState) deploymentsAreUnsuccessful() error {
+	return s.allOperationsWillWithAnError("unsuccessful", "message")
+}
+
 // pspScenarioInitialize initialises the specific test steps.  This is essentially the creation of the test
 // which reflects the tests described in the events directory.  There must be a test step registered for
 // each line in the feature files. Note: Godog will output stub steps and implementations if it doesn't find
@@ -1235,6 +1356,11 @@ func (p probeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the operation will "([^"]*)" with an error "([^"]*)"$`, ps.theOperationWillWithAnError)
 	ctx.Step(`^all operations will "([^"]*)" with an error "([^"]*)"$`, ps.allOperationsWillWithAnError)
 	ctx.Step(`^I should be able to perform an allowed command$`, ps.iShouldBeAbleToPerformAnAllowedCommand)
+
+	ctx.Step(`^an added capabilities list of 0 to n capabilities that are allowed to be added to a Pod has been provided$`, ps.listOfAdditionalCapabilitiesHasBeenProvided)
+	ctx.Step(`^the deployment of individual Pods that request the addition of each added capability in the list are successful$`, ps.checkPodsCanBeDeployedWithAllowedCapabilities)
+	ctx.Step(`^a user attempts to deploy individual Pods that request the addition of non-default capabilities not specified in the added capability list$`, ps.storeStateForPodsWithDisallowedCapabilities)
+	ctx.Step(`^the deployment attempts are unsuccessful due to restrictions in adding those capabilities to Pod deployments$`, ps.deploymentsAreUnsuccessful)
 
 	ctx.AfterScenario(func(s *godog.Scenario, err error) {
 		if kubernetes.GetKeepPodsFromConfig() == false {

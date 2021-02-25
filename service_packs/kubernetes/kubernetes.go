@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"path/filepath"
+	"strings"
 
 	"github.com/cucumber/godog"
 	"github.com/markbates/pkger"
@@ -120,7 +121,7 @@ func ProcessPodCreationResult(state *PodState, pd *apiv1.Pod, expected PodCreati
 // then the expectation is that a creation error will be present.
 func AssertResult(s *PodState, res, msg string) error {
 
-	if res == "Fail" || res == "denied" {
+	if strings.ToLower(res) == "fail" || strings.ToLower(res) == "denied" || strings.ToLower(res) == "unsuccessful" {
 		//expect pod creation error to be non-null
 		if s.CreationError == nil {
 			//it's a fail:
