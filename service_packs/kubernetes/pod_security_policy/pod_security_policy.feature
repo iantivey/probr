@@ -140,6 +140,20 @@ So that a policy of least privilege can be enforced in order to prevent maliciou
         When a user attempts to deploy individual Pods that request the addition of non-default capabilities not specified in the added capability list
         Then the deployment attempts are unsuccessful due to restrictions in adding those capabilities to Pod deployments
 
+    @k-psp-008-02
+    Scenario: Commands requiring capabilities which are not allowed to be added to a Pod are restricted
+
+        Container runtimes have a set of Linux capabilities that are enabled by default ("default capabilities"), that need to be explicitly dropped if not required, and a set of Linux capabilities that are not enabled by default ("non-default capabilities"),
+        that need to be explicitly added if required. Commands that require non-default capabilities should not be allowed, unless explicitly added to the container specification at deployment time.
+
+        Given a Kubernetes cluster exists which we can deploy into
+        And an added capabilities list of 0 to n capabilities that are allowed to be added to a Pod has been provided
+        And the deployment of a Pod requesting all of the capabilities in the added capabilities list is successful
+        And a user successfully executes commands inside the Pod that require capabilities in the added capabilities list
+        Then a user is unsuccessful in executing commands inside the Pod that require non-default capabilities that are not specified in the 'added capabilities' list
+
+
+
 
     @k-psp-008
     Scenario Outline: Prevent container running with capabilities beyond the default set.

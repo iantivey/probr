@@ -112,7 +112,6 @@ func (s *scenarioState) allOperationsWillWithAnError(result, message string) err
 	stepTrace.WriteString("Validate that the scenario state was updated in the previous step with a list of pods with a particular result and message; ")
 	fmt.Printf("check deployment states")
 
-	//TODO: replace this with function call
 	errorMessages, err := checkDeploymentStates(&s.podStates, result, message)
 
 	payload = struct {
@@ -1278,6 +1277,18 @@ func (s *scenarioState) deploymentsAreUnsuccessful() error {
 	return s.allOperationsWillWithAnError("unsuccessful", "message")
 }
 
+func (s *scenarioState) deployPodWithAllAdditionalCapabilities() error {
+	return godog.ErrPending
+}
+
+func (s *scenarioState) executeAllowedCapabilityCommands() error {
+	return godog.ErrPending
+}
+
+func (s *scenarioState) executeNotAllowedCapabilityCommands() error {
+	return godog.ErrPending
+}
+
 // pspScenarioInitialize initialises the specific test steps.  This is essentially the creation of the test
 // which reflects the tests described in the events directory.  There must be a test step registered for
 // each line in the feature files. Note: Godog will output stub steps and implementations if it doesn't find
@@ -1361,6 +1372,10 @@ func (p probeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the deployment of individual Pods that request the addition of each added capability in the list are successful$`, ps.checkPodsCanBeDeployedWithAllowedCapabilities)
 	ctx.Step(`^a user attempts to deploy individual Pods that request the addition of non-default capabilities not specified in the added capability list$`, ps.storeStateForPodsWithDisallowedCapabilities)
 	ctx.Step(`^the deployment attempts are unsuccessful due to restrictions in adding those capabilities to Pod deployments$`, ps.deploymentsAreUnsuccessful)
+
+	ctx.Step(`^the deployment of a Pod requesting all of the capabilities in the added capabilities list is successful$`, ps.deployPodWithAllAdditionalCapabilities)
+	ctx.Step(`^a user successfully executes commands inside the Pod that require capabilities in the added capabilities list$`, ps.executeAllowedCapabilityCommands)
+	ctx.Step(`^a user is unsuccessful in executing commands inside the Pod that require non-default capabilities that are not specified in the added capabilities list$`, ps.executeNotAllowedCapabilityCommands)
 
 	ctx.AfterScenario(func(s *godog.Scenario, err error) {
 		if kubernetes.GetKeepPodsFromConfig() == false {
