@@ -1,6 +1,7 @@
 package kubernetes
 
 import (
+	"fmt"
 	"log"
 	"path/filepath"
 
@@ -14,9 +15,10 @@ import (
 	"github.com/citihub/probr/utils"
 )
 
+// AssetsDir is set during init() and dictates the central location for probe assets
 var AssetsDir string
 
-// podState captures useful pod state data for use in a scenario's state.
+// PodState captures useful pod state data for use in a scenario's state.
 type PodState struct {
 	PodName         string
 	CreationError   *PodCreationError
@@ -36,9 +38,11 @@ type scenarioState struct {
 }
 
 const (
+	// Namespace is the default namespace used in each probe
 	Namespace = "probr-general-test-ns"
 )
 
+// PodPayload contains the apiv1 and probr information regarding a pod creation attempt
 type PodPayload struct {
 	Pod      *apiv1.Pod
 	PodAudit *PodAudit
@@ -56,6 +60,7 @@ func init() {
 //
 // Helper Functions
 
+// BeforeScenario is a DRY helper designed to be run in each probe's beforeScenario function
 func BeforeScenario(s *scenarioState, probeName string, gs *godog.Scenario) {
 	s.setup()
 	s.name = gs.Name
@@ -151,12 +156,13 @@ func AssertResult(s *PodState, res, msg string) error {
 
 }
 
+// ClusterPayload ...
 type ClusterPayload struct {
 	KubeConfigPath string
 	KubeContext    string
 }
 
-//general feature steps:
+//ClusterIsDeployed ...
 func ClusterIsDeployed() (string, ClusterPayload, error) {
 	var err error
 	b := GetKubeInstance().ClusterIsDeployed()
@@ -164,7 +170,9 @@ func ClusterIsDeployed() (string, ClusterPayload, error) {
 		err = utils.ReformatError("Kubernetes cluster is not deployed")
 		log.Print(err)
 	}
-	description := "Passes if Probr successfully connects to the specified cluster."
+	description := fmt.Sprintf("Validated that the k8s cluster specified in '%s' is deployed by checking the '%s' context; ",
+		config.Vars.ServicePacks.Kubernetes.KubeConfigPath,
+		config.Vars.ServicePacks.Kubernetes.KubeContext)
 	payload := ClusterPayload{config.Vars.ServicePacks.Kubernetes.KubeConfigPath, config.Vars.ServicePacks.Kubernetes.KubeContext}
 	return description, payload, err
 }

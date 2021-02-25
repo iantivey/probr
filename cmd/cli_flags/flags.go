@@ -1,4 +1,4 @@
-package cli_flags
+package cliflags
 
 import (
 	"flag"
@@ -11,7 +11,9 @@ import (
 
 type flagHandlerFunc func(v interface{})
 
+// Flag holds the user-provided value for the flag, and the function to be run within executeHandler
 type Flag struct {
+	// exported to avoid conflict with the default `flag` provided in go
 	Handler flagHandlerFunc
 	Value   interface{}
 }
@@ -22,6 +24,7 @@ func (f Flag) executeHandler() {
 	f.Handler(f.Value)
 }
 
+// HandleFlags executes the logic for any flags that are provided via `./probr (--<FLAG>)`
 func HandleFlags() {
 
 	stringFlag("varsfile", "path to config file", varsFileHandler)
@@ -29,6 +32,7 @@ func HandleFlags() {
 	stringFlag("kubeconfig", "kube config file", kubeConfigHandler)
 	stringFlag("writedirectory", "output directory", writeDirHandler)
 	stringFlag("tags", "feature tags to include or exclude", tagsHandler)
+	stringFlag("resultsformat", "set the bdd results format (default = cucumber)", resultsformatHandler)
 	boolFlag("silent", "disable visual runtime indicator, useful for CI tasks", silentHandler)
 	boolFlag("nosummary", "switch off summary output", nosummaryHandler)
 	flag.Parse()
@@ -92,6 +96,19 @@ func loglevelHandler(v interface{}) {
 		} else {
 			config.Vars.LogLevel = *v.(*string)
 			config.SetLogFilter(config.Vars.LogLevel, os.Stderr)
+		}
+	}
+}
+
+func resultsformatHandler(v interface{}) {
+	if len(*v.(*string)) > 0 {
+		options := []string{"cucumber", "events", "junit", "pretty", "progress"}
+		_, found := utils.FindString(options, *v.(*string))
+		if !found {
+			log.Fatalf("[ERROR] Unknown resultsformat specified: '%s'. Must be one of %v", *v.(*string), options)
+		} else {
+			config.Vars.ResultsFormat = *v.(*string)
+			config.SetLogFilter(config.Vars.ResultsFormat, os.Stderr)
 		}
 	}
 }

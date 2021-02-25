@@ -1,4 +1,4 @@
-package encryption_in_flight
+package azureeif
 
 import (
 	"context"
@@ -32,12 +32,12 @@ type scenarioState struct {
 	storageAccounts           []string
 }
 
-// Allows this probe to be added to the ProbeStore
+// ProbeStruct allows this probe to be added to the ProbeStore
 type ProbeStruct struct {
 	state scenarioState
 }
 
-// Allows this probe to be added to the ProbeStore
+// Probe allows this probe to be added to the ProbeStore
 var Probe ProbeStruct
 
 func (state *scenarioState) setup() {
@@ -115,7 +115,8 @@ func (state *scenarioState) httpAccessIs(arg1 string) error {
 		state.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
-	stepTrace.WriteString(fmt.Sprintf("Http Option: %s;", arg1))
+	stepTrace.WriteString(fmt.Sprintf(
+		"Http Option: %s;", arg1))
 	if arg1 == "enabled" {
 		state.httpOption = true
 	} else {
@@ -134,7 +135,8 @@ func (state *scenarioState) httpsAccessIs(arg1 string) error {
 		state.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
-	stepTrace.WriteString(fmt.Sprintf("Https Option: %s;", arg1))
+	stepTrace.WriteString(fmt.Sprintf(
+		"Https Option: %s;", arg1))
 	if arg1 == "enabled" {
 		state.httpsOption = true
 	} else {
@@ -171,24 +173,28 @@ func (state *scenarioState) creationWillWithAnErrorMatching(expectation, errDesc
 
 	// Both true take it as http option is try
 	if state.httpsOption && state.httpOption {
-		stepTrace.WriteString(fmt.Sprintf("Creating Storage Account with HTTPS: %v;", false))
+		stepTrace.WriteString(fmt.Sprintf(
+			"Creating Storage Account with HTTPS: %v;", false))
 		log.Printf("[DEBUG] Creating Storage Account with HTTPS: %v;", false)
 		_, err = storage.CreateWithNetworkRuleSet(state.ctx, accountName,
 			azureutil.ResourceGroup(), state.tags, false, &networkRuleSet)
 	} else if state.httpsOption {
-		stepTrace.WriteString(fmt.Sprintf("Creating Storage Account with HTTPS: %v;", state.httpsOption))
+		stepTrace.WriteString(fmt.Sprintf(
+			"Creating Storage Account with HTTPS: %v;", state.httpsOption))
 		log.Printf("[DEBUG] Creating Storage Account with HTTPS: %v", state.httpsOption)
 		_, err = storage.CreateWithNetworkRuleSet(state.ctx, accountName,
 			azureutil.ResourceGroup(), state.tags, state.httpsOption, &networkRuleSet)
 	} else if state.httpOption {
-		stepTrace.WriteString(fmt.Sprintf("Creating Storage Account with HTTPS: %v;", state.httpsOption))
+		stepTrace.WriteString(fmt.Sprintf(
+			"Creating Storage Account with HTTPS: %v;", state.httpsOption))
 		log.Printf("[DEBUG] Creating Storage Account with HTTPS: %v", state.httpsOption)
 		_, err = storage.CreateWithNetworkRuleSet(state.ctx, accountName,
 			azureutil.ResourceGroup(), state.tags, state.httpsOption, &networkRuleSet)
 	}
 	if err == nil {
 		// storage account created so add to state
-		stepTrace.WriteString(fmt.Sprintf("Created Storage Account: %s;", accountName))
+		stepTrace.WriteString(fmt.Sprintf(
+			"Created Storage Account: %s;", accountName))
 		log.Printf("[DEBUG] Created Storage Account: %s", accountName)
 		state.storageAccounts = append(state.storageAccounts, accountName)
 	}
@@ -302,19 +308,20 @@ func (state *scenarioState) encryptedDataTrafficIsEnforced() error {
 	return nil
 }
 
-func (s *scenarioState) beforeScenario(probeName string, gs *godog.Scenario) {
-	s.name = gs.Name
-	s.probe = audit.State.GetProbeLog(probeName)
-	s.audit = audit.State.GetProbeLog(probeName).InitializeAuditor(gs.Name, gs.Tags)
-	s.ctx = context.Background()
+func (state *scenarioState) beforeScenario(probeName string, gs *godog.Scenario) {
+	state.name = gs.Name
+	state.probe = audit.State.GetProbeLog(probeName)
+	state.audit = audit.State.GetProbeLog(probeName).InitializeAuditor(gs.Name, gs.Tags)
+	state.ctx = context.Background()
 	coreengine.LogScenarioStart(gs)
 }
 
-// Return this probe's name
+// Name will return this probe's name
 func (p ProbeStruct) Name() string {
 	return "encryption_in_flight"
 }
 
+// Path will return this probe's feature path
 func (p ProbeStruct) Path() string {
 	return coreengine.GetFeaturePath("service_packs", "storage", "azure", p.Name())
 }
@@ -329,7 +336,7 @@ func (p ProbeStruct) ProbeInitialize(ctx *godog.TestSuiteContext) {
 	ctx.AfterSuite(p.state.teardown)
 }
 
-// initialises the scenario
+// ScenarioInitialize initialises the scenario
 func (p ProbeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 
 	ctx.BeforeScenario(func(s *godog.Scenario) {

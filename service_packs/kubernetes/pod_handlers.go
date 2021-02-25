@@ -14,8 +14,8 @@ import (
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	//needed for authentication against the various GCPs
 	k8s "k8s.io/client-go/kubernetes"
+	//needed for authentication against the various GCPs
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 )
 
@@ -65,6 +65,7 @@ type PodCreationError struct {
 	ReasonCodes map[PodCreationErrorReason]*PodCreationErrorReason
 }
 
+// PodAudit stores information related to a pod creation attempt
 type PodAudit struct {
 	PodName         string
 	Namespace       string
@@ -169,31 +170,39 @@ func waitForDelete(c *k8s.Clientset, ns string, n string) error {
 	return nil
 }
 
+// GetContainerDropCapabilitiesFromConfig returns Kubernetes.ContainerRequiredDropCapabilities as a list of Capability objects
 func GetContainerDropCapabilitiesFromConfig() []apiv1.Capability {
-	var apiDropCapabilities []apiv1.Capability
-
 	// Adding all values from config
 	dropCapabilitiesFromConfig := config.Vars.ServicePacks.Kubernetes.ContainerRequiredDropCapabilities
-	for _, dropCap := range dropCapabilitiesFromConfig {
-		if dropCap != "" {
-			apiDropCapabilities = append(apiDropCapabilities, apiv1.Capability(dropCap))
+
+	return GetCapabilitiesFromList(dropCapabilitiesFromConfig)
+}
+
+// GetCapabilitiesFromList converts a list of strings into a list of capabilities
+func GetCapabilitiesFromList(capList []string) []apiv1.Capability {
+	var capabilities []apiv1.Capability
+
+	for _, cap := range capList {
+		if cap != "" {
+			capabilities = append(capabilities, apiv1.Capability(cap))
 		}
 	}
 
-	return apiDropCapabilities
+	return capabilities
 }
 
+// GetUnapprovedHostPortFromConfig returns the config value for Kubernetes.UnapprovedHostPort
 func GetUnapprovedHostPortFromConfig() string {
 	return config.Vars.ServicePacks.Kubernetes.UnapprovedHostPort
 }
 
+// GetKeepPodsFromConfig converts the config value for Kubernetes.KeepPods into a boolean
 func GetKeepPodsFromConfig() bool {
 	flag, err := strconv.ParseBool(config.Vars.ServicePacks.Kubernetes.KeepPods)
 
 	if err != nil {
 		log.Printf("[INFO] Error converting KeepPods to bool val. Defaulting to false.")
 		return false
-	} else {
-		return flag
 	}
+	return flag
 }

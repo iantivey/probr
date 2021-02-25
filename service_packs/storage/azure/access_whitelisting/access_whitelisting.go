@@ -1,4 +1,4 @@
-package access_whitelisting
+package azureaw
 
 import (
 	"context"
@@ -28,12 +28,12 @@ const (
 	storageRgEnvVar      = "STORAGE_ACCOUNT_RESOURCE_GROUP" // TODO: Should this be replaced with azureutil.ResourceGroup() - which not only checks in env var, but also config vars?
 )
 
-// Allows this probe to be added to the ProbeStore
+// ProbeStruct allows this probe to be added to the ProbeStore
 type ProbeStruct struct {
 	state scenarioState
 }
 
-// Allows this probe to be added to the ProbeStore
+// Probe allows this probe to be added to the ProbeStore
 var Probe ProbeStruct
 
 type scenarioState struct {
@@ -168,7 +168,8 @@ func (state *scenarioState) createWithWhitelist(ipRange string) error {
 		state.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
-	stepTrace.WriteString(fmt.Sprintf("Attempting to create storage bucket with whitelisting for given IP Range: %s;", ipRange))
+	stepTrace.WriteString(fmt.Sprintf(
+		"Attempting to create storage bucket with whitelisting for given IP Range: %s;", ipRange))
 
 	var networkRuleSet azureStorage.NetworkRuleSet
 	if ipRange == "nil" {
@@ -218,7 +219,8 @@ func (state *scenarioState) creationWill(expectation string) error {
 		state.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
-	stepTrace.WriteString(fmt.Sprintf("Expectation that Object Storage container was provisioned with whitelisting in previous step is: %s;", expectation))
+	stepTrace.WriteString(fmt.Sprintf(
+		"Expectation that Object Storage container was provisioned with whitelisting in previous step is: %s;", expectation))
 
 	if expectation == "Fail" {
 		if state.runningErr == nil {
@@ -273,7 +275,8 @@ func (state *scenarioState) examineStorageContainer(containerNameEnvVar string) 
 		state.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
-	stepTrace.WriteString(fmt.Sprintf("Checking value for environment variable: %s;", containerNameEnvVar))
+	stepTrace.WriteString(fmt.Sprintf(
+		"Checking value for environment variable: %s;", containerNameEnvVar))
 	accountName := os.Getenv(containerNameEnvVar) // TODO: Should this come from config?
 	payload.StorageAccountName = accountName
 	if accountName == "" {
@@ -281,7 +284,8 @@ func (state *scenarioState) examineStorageContainer(containerNameEnvVar string) 
 		return err
 	}
 
-	stepTrace.WriteString(fmt.Sprintf("Checking value for environment variable: %s;", storageRgEnvVar))
+	stepTrace.WriteString(fmt.Sprintf(
+		"Checking value for environment variable: %s;", storageRgEnvVar))
 	resourceGroup := os.Getenv(storageRgEnvVar) // TODO: Should this be replaced with azureutil.ResourceGroup() - which not only checks in env var, but also config vars?
 	payload.ResourceGroup = resourceGroup
 	if resourceGroup == "" {
@@ -349,19 +353,20 @@ func (state *scenarioState) whitelistingIsConfigured() error {
 	return nil //TODO: Remove this line. This is temporary to ensure test doesn't halt and other steps are not skipped
 }
 
-func (s *scenarioState) beforeScenario(probeName string, gs *godog.Scenario) {
-	s.name = gs.Name
-	s.probe = audit.State.GetProbeLog(probeName)
-	s.audit = audit.State.GetProbeLog(probeName).InitializeAuditor(gs.Name, gs.Tags)
-	s.ctx = context.Background()
+func (state *scenarioState) beforeScenario(probeName string, gs *godog.Scenario) {
+	state.name = gs.Name
+	state.probe = audit.State.GetProbeLog(probeName)
+	state.audit = audit.State.GetProbeLog(probeName).InitializeAuditor(gs.Name, gs.Tags)
+	state.ctx = context.Background()
 	coreengine.LogScenarioStart(gs)
 }
 
-// Return this probe's name
+// Name returns this probe's name
 func (p ProbeStruct) Name() string {
 	return "access_whitelisting"
 }
 
+// Path returns this probe's feature file path
 func (p ProbeStruct) Path() string {
 	return coreengine.GetFeaturePath("service_packs", "storage", "azure", p.Name())
 }
@@ -377,7 +382,7 @@ func (p ProbeStruct) ProbeInitialize(ctx *godog.TestSuiteContext) {
 	ctx.AfterSuite(p.state.teardown)
 }
 
-// initialises the scenario
+// ScenarioInitialize initialises the scenario
 func (p ProbeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 
 	ctx.BeforeScenario(func(s *godog.Scenario) {
